@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% block title %}About - Fitness App{% endblock %}
+{% block content %}
+<style>
+
+    .calendar-day.has-note {
+        background-color: #EEF2FF;
+        font-weight: bold;
+    }
+
+    .calendar-day {
+width: calc(100% / 7);
+aspect-ratio: 1;
+color: #374151;  /* Default text color (gray-700) */
+}
+.calendar-day.today {
+border: 2px solid #4F46E5;
+color: black;  /* Today's date in black */
+}
+.calendar-day.due-date {
+color: #EF4444;  /* Due dates in red */
+font-weight: bold;
+}
+</style>
+<section>
+    <div class="left-content" style="display: block; padding: 40px;">
+    <!-- Remove px-4 from container and adjust max-width -->
+    <div class="w-full max-w-[1920px] py-8">
+        <!-- Add padding to main content wrapper -->
+        <div class="px-6">
+            <div class="grid grid-cols-12 gap-8">
+                <!-- Increase col-span for better spacing -->
+                <div class="col-span-12 lg:col-span-9" style="padding-left: 12rem;">
+                    <div class="mb-8 flex justify-between items-center">
+                        <h1 class="text-3xl font-bold text-gray-900">My Notes</h1>
+                        <button onclick="toggleNewNoteForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-6 py-2 shadow-sm transition-colors">
+                            New Note
+                        </button>
+                    </div>
+
+                    <!-- Adjust form width -->
+                    <div id="newNoteForm" class="mb-8 hidden">
+                        <form action="{{ url_for('new_note') }}" method="POST" class="bg-white rounded-lg p-6 space-y-4 shadow-lg border border-gray-200">
+                            <div>
+                                <label class="block mb-2 font-medium text-gray-700">Title</label>
+                                <input type="text" name="title" required class="w-full rounded-lg px-4 py-2 border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block mb-2 font-medium text-gray-700">Content</label>
+                                <textarea name="content" required rows="4" class="w-full rounded-lg px-4 py-2 border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></textarea>
+                            </div>
+                            
+                            <div>
+                                <label class="block mb-2 font-medium text-gray-700">Note Type</label>
+                                <select name="note_type" class="w-full rounded-lg px-4 py-2 border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                                    <option value="YouTube Video Notes">YouTube Video Notes</option>
+                                    <option value="Class Notes">Class Notes</option>
+                                    <option value="Scripts">Scripts</option>
+                                    <option value="Research">Research</option>
+                                    <option value="Ideas">Ideas</option>
+                                    <option value="Personal Journal">Personal Journal</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block mb-2 font-medium text-gray-700">Color</label>
+                                <select name="color" class="w-full rounded-lg px-4 py-2 border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                                    <option value="yellow">Yellow</option>
+                                    <option value="pink">Pink</option>
+                                    <option value="purple">Purple</option>
+                                    <option value="grey">Grey</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block mb-2 font-medium text-gray-700">Due Date</label>
+                                <input type="date" name="due_date" class="w-full rounded-lg px-4 py-2 border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                            
+                            <div class="flex space-x-4">
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-6 py-2 shadow-sm transition-colors">Create Note</button>
+                                <button type="button" onclick="toggleNewNoteForm()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg px-6 py-2 shadow-sm transition-colors">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Adjust grid columns for different screen sizes -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {% for note in notes %}
+                        <div class="rounded-lg p-6 {% if note.color == 'yellow' %}bg-yellow-50 border-yellow-200{% elif note.color == 'pink' %}bg-pink-50 border-pink-200{% elif note.color == 'purple' %}bg-purple-50 border-purple-200{% else %}bg-gray-50 border-gray-200{% endif %} border shadow-sm hover:shadow-md transition-shadow">
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-gray-900">{{ note.title }}</h3>
+                                <form action="{{ url_for('delete_note', note_id=note.id) }}" method="POST" class="inline">
+                                    <button type="submit" class="text-gray-400 hover:text-gray-600">&times;</button>
+                                </form>
+                            </div>
+                            <p class="text-sm mt-2 text-gray-600">{{ note.content }}</p>
+                            <div class="text-xs text-gray-500 mt-4">{{ note.note_type }}</div>
+                            {% if note.due_date %}
+                            <div class="text-xs text-gray-500 mt-1">Due: {{ note.due_date.strftime('%Y-%m-%d') }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Adjust sidebar width -->
+                <div class="col-span-12 lg:col-span-3" style="padding-left: 5rem;">
+                    <div class="lg:sticky lg:top-8 space-y-8">
+                        <!-- Categories -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <h2 class="text-xl font-bold text-gray-900 mb-4">Categories</h2>
+                            <div class="space-y-2">
+                                <a href="{{ url_for('notes') }}" 
+                                   class="block {% if current_type == 'all' %}bg-indigo-50 text-indigo-700{% else %}hover:bg-gray-50 text-gray-600 hover:text-gray-900{% endif %} rounded-lg px-4 py-2 transition-colors">
+                                    All Notes
+                                </a>
+                                {% set note_types = ['YouTube Video Notes', 'Class Notes', 'Scripts', 'Research', 'Ideas', 'Personal Journal'] %}
+                                {% for type in note_types %}
+                                <a href="{{ url_for('notes', note_type=type|urlencode) }}" 
+                                   class="block {% if current_type == type %}bg-indigo-50 text-indigo-700{% else %}hover:bg-gray-50 text-gray-600 hover:text-gray-900{% endif %} rounded-lg px-4 py-2 transition-colors">
+                                    {{ type }}
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Calendar -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <h2 class="text-xl font-bold text-gray-900 mb-4">Upcoming Due Dates</h2>
+                            <div class="mb-4 flex justify-between items-center">
+                                <button onclick="previousMonth()" class="text-gray-600 hover:text-gray-900">&larr;</button>
+                                <span id="currentMonth" class="font-medium"></span>
+                                <button onclick="nextMonth()" class="text-gray-600 hover:text-gray-900">&rarr;</button>
+                            </div>
+                            <div class="grid grid-cols-7 gap-1 text-center mb-2">
+                                <div class="text-xs font-medium text-gray-500">Sun</div>
+                                <div class="text-xs font-medium text-gray-500">Mon</div>
+                                <div class="text-xs font-medium text-gray-500">Tue</div>
+                                <div class="text-xs font-medium text-gray-500">Wed</div>
+                                <div class="text-xs font-medium text-gray-500">Thu</div>
+                                <div class="text-xs font-medium text-gray-500">Fri</div>
+                                <div class="text-xs font-medium text-gray-500">Sat</div>
+                            </div>
+                            <div id="calendar" class="grid grid-cols-7 gap-1"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</section>
+<script>
+    function toggleNewNoteForm() {
+        const form = document.getElementById('newNoteForm');
+        form.classList.toggle('hidden');
+    }
+
+    // Calendar functionality
+    let currentDate = new Date();
+    const dueDates = [
+        {% for note in upcoming_notes %}
+            new Date("{{ note.due_date.strftime('%Y-%m-%d') }}"),
+        {% endfor %}
+    ];
+
+    function renderCalendar() {
+const calendar = document.getElementById('calendar');
+const monthLabel = document.getElementById('currentMonth');
+calendar.innerHTML = '';
+
+const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+// Update month label
+monthLabel.textContent = firstDay.toLocaleDateString('default', { month: 'long', year: 'numeric' });
+
+// Add empty cells for days before the first of the month
+for (let i = 0; i < firstDay.getDay(); i++) {
+    calendar.appendChild(createDayElement(''));
+}
+
+// Get today's date for comparison
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+// Add days of the month
+for (let day = 1; day <= lastDay.getDate(); day++) {
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+    const hasDueDate = dueDates.some(dueDate => 
+        dueDate.getDate() === date.getDate() &&
+        dueDate.getMonth() === date.getMonth() &&
+        dueDate.getFullYear() === date.getFullYear()
+    );
+    
+    const isToday = date.getTime() === today.getTime();
+    calendar.appendChild(createDayElement(day, hasDueDate, isToday));
+}
+}
+
+function createDayElement(day, hasDueDate = false, isToday = false) {
+const div = document.createElement('div');
+div.textContent = day;
+
+let classes = ['calendar-day', 'flex', 'items-center', 'justify-center', 'text-sm'];
+
+if (hasDueDate) classes.push('due-date');
+if (isToday) classes.push('today');
+if (day === '') {
+    classes.push('text-gray-300');
+} else {
+    classes.push('hover:bg-gray-50', 'cursor-pointer');
+}
+
+div.className = classes.join(' ');
+return div;
+}
+
+    function previousMonth() {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+    }
+
+    function nextMonth() {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+    }
+
+    // Initial render
+    renderCalendar();
+</script>
+
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}About - Fitness App{% endblock %}
+{% block content %}
+<style>
+    body {
+        background-color: #f0f2f5;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+    .container {
+        max-width: 800px;
+    }
+    h1 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #343a40;
+    }
+    .form-container {
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+    }
+    .form-control {
+        margin-bottom: 15px;
+        border-radius: 8px;
+    }
+    .btn-primary {
+        margin-top: 10px;
+        padding: 10px 20px;
+        font-size: 1.1rem;
+        border-radius: 8px;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+    .question-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #ffffff;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.05);
+    }
+    .choice {
+        background-color: #e9ecef;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ced4da;
+        font-size: 1.1rem;
+    }
+    .correct-answer {
+        font-weight: bold;
+        color: #28a745;
+    }
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #495057;
+    }
+    .print-btn {
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 1.1rem;
+        border-radius: 8px;
+        background-color: #6c757d;
+        color: white;
+        border: none;
+    }
+    .print-btn:hover {
+        background-color: #5a6268;
+    }
+</style>
+<section class="content">
+    <div class="container">
+
+        {% if mcqs %}
+            <h2 class="mt-5 mb-4 text-center">Generated MCQs</h2>
+            <div class="question-list">
+                {% for mcq in mcqs %}
+                    <div class="card question-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Q{{ loop.index }}: {{ mcq[0] }}</h5>
+                            <ul class="list-unstyled">
+                                {% for choice in mcq[1] %}
+                                    <li class="choice">{{ choice[0] }}: {{ choice[1] }}</li>
+                                {% endfor %}
+                            </ul>
+                            <p class="mt-3"><span class="correct-answer">Correct Answer:</span> {{ mcq[2] }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Print/Save as PDF Button -->
+            <button class="btn print-btn w-100" onclick="window.print()">Print / Save as PDF</button>
+        {% endif %}
+    </div>
+
+</section>
+{% endblock %}

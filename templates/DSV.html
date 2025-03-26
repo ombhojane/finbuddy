@@ -1,0 +1,646 @@
+{% extends "base.html" %}
+{% block title %}About - Fitness App{% endblock %}
+{% block content %}
+    <style>
+        
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .controls {
+            background-color: #3f3f3f;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+        }
+        
+        .visualization {
+            background-color: #dfdfdf;
+            padding: 20px;
+            border-radius: 8px;
+            flex-grow: 1;
+            min-height: 600px;
+            position: relative;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        input, select, button {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 4px;
+        }
+        
+        button {
+            background-color: #93f1b7;
+            color: #272643;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        #visualization-container {
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+        }
+        
+        .bar {
+            background-color: #808080;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .bar.comparing {
+            background-color: #292929;
+        }
+        
+        .bar-value {
+            color: #eeeeee;
+            text-align: center;
+            padding: 5px 0;
+            font-size: 15px;
+        }
+
+        .stack-container, .queue-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            align-items: center;
+            display: none;
+        }
+
+        .stack-container {
+            justify-content: flex-end;
+        }
+
+        .queue-container {
+            flex-direction: row;
+            justify-content: flex-start;
+            align-items: center;
+            height: 200px;
+        }
+
+        .stack-element, .queue-element {
+            background-color: #6967a1;
+            color: white;
+            padding: 10px;
+            margin: 5px;
+            width: 80px;
+            text-align: center;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .stack-element.new, .queue-element.new {
+            background-color: #93f1b7;
+        }
+
+        .data-structure-controls {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .button-group button {
+            flex: 1;
+        }
+        
+        .speed-control {
+            margin-top: 10px;
+        }
+
+        .operation-value {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .linked-list-container {
+    display: none;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    height: 200px;
+    padding: 20px;
+    gap: 10px;
+}
+
+.linked-list-node {
+    display: flex;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.node-content {
+    background-color: #6967a1;
+    color: white;
+    padding: 15px;
+    border-radius: 4px;
+    min-width: 40px;
+    text-align: center;
+}
+
+.node-arrow {
+    color: #272643;
+    margin: 0 10px;
+    font-size: 20px;
+}
+
+.linked-list-node.new .node-content {
+    background-color: #93f1b7;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Add to the existing data structure controls */
+.linked-list-controls {
+    display: none;
+}
+    </style>
+<section><br><br>
+    <div class="left-content" style="display: block; padding: 40px;">
+        <div class="container">
+        <div class="controls">
+            <b><h1 style="color: #eeeeee;font-size: 1.2rem;">Data Structures Visualizer</h1></b>
+            
+            <div class="form-group">
+                <br>
+                <label for="structure-type" style="color: #eeeeee;">Structure Type:</label>
+                <select id="structure-type">
+                    <option value="sorting">Sorting</option>
+                    <option value="stack">Stack</option>
+                    <option value="queue">Queue</option>
+                    <option value="linkedlist">Linked List (2-way)</option>
+                </select>
+            </div>
+
+            <!-- Sorting Controls -->
+            <div id="sorting-controls">
+                <div class="form-group">
+                    <label for="algorithm" style="color: #eeeeee;">Algorithm:</label>
+                    <select id="algorithm">
+                        <option value="bubble">Bubble Sort</option>
+                        <option value="selection">Selection Sort</option>
+                        <option value="insertion">Insertion Sort</option>
+                        <option value="merge">Merge Sort</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="size" style="color: #eeeeee;">Array Size:</label>
+                    <input type="number" id="size" value="10" min="5" max="100">
+                </div>
+                
+                <div class="form-group">
+                    <label for="min" style="color: #eeeeee;">Minimum Value:</label>
+                    <input type="number" id="min" value="1" min="0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="max" style="color: #eeeeee;">Maximum Value:</label>
+                    <input type="number" id="max" value="100" min="1">
+                </div>
+                
+                <button id="generateDS">Generate New Array</button>
+                
+                <div class="button-group">
+                    <button id="sort">Sort</button>
+                    <button id="auto-sort">Auto Sort</button>
+                </div>
+                
+                <button id="next-step" disabled>Next Step</button>
+                
+                <div class="speed-control">
+                    <label for="speed" style="color: #eeeeee;">Animation Speed:</label>
+                    <input type="range" id="speed" min="1" max="100" value="50">
+                </div>
+            </div>
+
+            <!-- Stack/Queue Controls -->
+            <div id="data-structure-controls" class="data-structure-controls">
+                <div class="form-group">
+                    <label for="operation-value">Value:</label>
+                    <input type="number" id="operation-value" class="operation-value" value="1" min="0">
+                </div>
+                
+                <div class="button-group">
+                    <button id="push-enqueue">Push/Enqueue</button>
+                    <button id="pop-dequeue">Pop/Dequeue</button>
+                </div>
+            </div>
+
+            <div id="linked-list-controls" class="linked-list-controls">
+                <div class="form-group">
+                    <label for="linked-list-value">Value:</label>
+                    <input type="number" id="linked-list-value" class="operation-value" value="1" min="0">
+                </div>
+                
+                <div class="button-group-vertical">
+                    <button id="insert-beginning">Insert at Beginning</button>
+                    <button id="insert-end">Insert at End</button>
+                    <button id="delete-beginning">Delete from Beginning</button>
+                    <button id="delete-end">Delete from End</button>
+                </div>
+            </div>
+        </div>
+        <div id="linked-list-controls" class="linked-list-controls">
+            <div class="form-group">
+                <label for="linked-list-value">Value:</label>
+                <input type="number" id="linked-list-value" class="operation-value" value="1" min="0">
+            </div>
+            
+            <div class="button-group-vertical">
+                <button id="insert-beginning">Insert at Beginning</button>
+                <button id="insert-end">Insert at End</button>
+                <button id="delete-beginning">Delete from Beginning</button>
+                <button id="delete-end">Delete from End</button>
+            </div>
+        </div>
+        
+        <div class="visualization">
+            <div id="visualization-container"></div>
+            <div id="stack-container" class="stack-container"></div>
+            <div id="queue-container" class="queue-container"></div><div id="linked-list-container" class="linked-list-container"></div>
+        </div>
+    </div>
+</div>
+</section>
+    <script>
+        let currentArray = [];
+        let sortingSteps = [];
+        let currentStep = 0;
+        let isSorting = false;
+        let autoSortInterval = null;
+        let stack = [];
+        let queue = [];
+        const MAX_STACK_SIZE = 10;
+        const MAX_QUEUE_SIZE = 10;
+        
+        // UI Elements
+        const structureTypeSelect = document.getElementById('structure-type');
+        const sortingControls = document.getElementById('sorting-controls');
+        const dataStructureControls = document.getElementById('data-structure-controls');
+        const visualizationContainer = document.getElementById('visualization-container');
+        const stackContainer = document.getElementById('stack-container');
+        const queueContainer = document.getElementById('queue-container');
+        const pushEnqueueButton = document.getElementById('push-enqueue');
+        const popDequeueButton = document.getElementById('pop-dequeue');
+
+        // Structure Type Change Handler
+        structureTypeSelect.addEventListener('change', () => {
+            const type = structureTypeSelect.value;
+            
+            // Hide all containers
+            visualizationContainer.style.display = 'none';
+            stackContainer.style.display = 'none';
+            queueContainer.style.display = 'none';
+            document.getElementById('linked-list-container').style.display = 'none';
+            sortingControls.style.display = 'none';
+            dataStructureControls.style.display = 'none';
+            document.getElementById('linked-list-controls').style.display = 'none';
+
+            // Show relevant containers based on type
+            switch(type) {
+                case 'sorting':
+                    visualizationContainer.style.display = 'flex';
+                    sortingControls.style.display = 'block';
+                    break;
+                case 'stack':
+                    stackContainer.style.display = 'flex';
+                    dataStructureControls.style.display = 'block';
+                    pushEnqueueButton.textContent = 'Push';
+                    popDequeueButton.textContent = 'Pop';
+                    break;
+                case 'queue':
+                    queueContainer.style.display = 'flex';
+                    dataStructureControls.style.display = 'block';
+                    pushEnqueueButton.textContent = 'Enqueue';
+                    popDequeueButton.textContent = 'Dequeue';
+                    break;
+                case 'linkedlist':
+                    document.getElementById('linked-list-container').style.display = 'flex';
+                    document.getElementById('linked-list-controls').style.display = 'block';
+                    break;
+            }
+        });
+
+        async function linkedListOperation(operation) {
+    const value = document.getElementById('linked-list-value').value;
+    try {
+        const response = await fetch(`/linkedlist/${operation}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ value })
+        });
+        
+        const data = await response.json();
+        if (!data.success) {
+            alert(data.message);
+            return;
+        }
+        
+        visualizeLinkedList(data.nodes, operation);
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred');
+    }
+}
+
+function visualizeLinkedList(nodes, operation) {
+    const container = document.getElementById('linked-list-container');
+    container.innerHTML = '';
+    
+    nodes.forEach((value, index) => {
+        const nodeContainer = document.createElement('div');
+        nodeContainer.className = 'linked-list-node';
+        
+        // Add 'new' class based on the operation
+        if ((operation === 'insert_beginning' && index === 0) ||
+            (operation === 'insert_end' && index === nodes.length - 1)) {
+            nodeContainer.classList.add('new');
+        }
+        
+        const nodeContent = document.createElement('div');
+        nodeContent.className = 'node-content';
+        nodeContent.textContent = value;
+        nodeContainer.appendChild(nodeContent);
+        
+        if (index < nodes.length - 1) {
+            const arrow = document.createElement('div');
+            arrow.className = 'node-arrow';
+            arrow.textContent = '→';
+            nodeContainer.appendChild(arrow);
+        }
+        
+        container.appendChild(nodeContainer);
+    });
+}
+
+// Add event listeners for linked list operations
+document.getElementById('insert-beginning').addEventListener('click', () => {
+    linkedListOperation('insert_beginning');
+});
+
+document.getElementById('insert-end').addEventListener('click', () => {
+    linkedListOperation('insert_end');
+});
+
+document.getElementById('delete-beginning').addEventListener('click', () => {
+    linkedListOperation('delete_beginning');
+});
+
+document.getElementById('delete-end').addEventListener('click', () => {
+    linkedListOperation('delete_end');
+});
+        // Stack Operations
+        pushEnqueueButton.addEventListener('click', () => {
+            const value = document.getElementById('operation-value').value;
+            const type = structureTypeSelect.value;
+            
+            if (type === 'stack') {
+                if (stack.length >= MAX_STACK_SIZE) {
+                    alert('Stack is full!');
+                    return;
+                }
+                pushToStack(value);
+            } else if (type === 'queue') {
+                if (queue.length >= MAX_QUEUE_SIZE) {
+                    alert('Queue is full!');
+                    return;
+                }
+                enqueue(value);
+            }
+        });
+
+        popDequeueButton.addEventListener('click', () => {
+            const type = structureTypeSelect.value;
+            
+            if (type === 'stack') {
+                if (stack.length === 0) {
+                    alert('Stack is empty!');
+                    return;
+                }
+                popFromStack();
+            } else if (type === 'queue') {
+                if (queue.length === 0) {
+                    alert('Queue is empty!');
+                    return;
+                }
+                dequeue();
+            }
+        });
+
+        function pushToStack(value) {
+            stack.push(value);
+            visualizeStack();
+        }
+
+        function popFromStack() {
+            stack.pop();
+            visualizeStack();
+        }
+
+        function enqueue(value) {
+            queue.push(value);
+            visualizeQueue();
+        }
+
+        function dequeue() {
+            queue.shift();
+            visualizeQueue();
+        }
+
+        function visualizeStack() {
+            stackContainer.innerHTML = '';
+            stack.slice().reverse().forEach((value, index) => {
+                const element = document.createElement('div');
+                element.className = 'stack-element';
+                element.textContent = value;
+                if (index === stack.length - 1) {
+                    element.classList.add('new');
+                }
+                stackContainer.appendChild(element);
+            });
+        }
+
+        function visualizeQueue() {
+            queueContainer.innerHTML = '';
+            queue.forEach((value, index) => {
+                const element = document.createElement('div');
+                element.className = 'queue-element';
+                element.textContent = value;
+                if (index === queue.length - 1) {
+                    element.classList.add('new');
+                }
+                queueContainer.appendChild(element);
+            });
+        }
+
+        // Existing Sorting Visualization Code
+        const generateArray = async () => {
+            const size = document.getElementById('size').value;
+            const min = document.getElementById('min').value;
+            const max = document.getElementById('max').value;
+            
+            const response = await fetch('/generateDS', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ size, min, max })
+            });
+            
+            const data = await response.json();
+            currentArray = data.array;
+            visualizeArray(currentArray);
+            
+            stopAutoSort();
+            document.getElementById('sort').disabled = false;
+            document.getElementById('auto-sort').disabled = false;
+            document.getElementById('next-step').disabled = true;
+        };
+        
+        const startSort = async () => {
+            if (isSorting) return;
+            
+            const algorithm = document.getElementById('algorithm').value;
+            
+            const response = await fetch('/sort', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    array: currentArray,
+                    algorithm
+                })
+            });
+            
+            const data = await response.json();
+            sortingSteps = data.steps;
+            currentStep = 0;
+            isSorting = true;
+            
+            document.getElementById('sort').disabled = true;
+            document.getElementById('auto-sort').disabled = true;
+            document.getElementById('next-step').disabled = false;
+            document.getElementById('generateDS').disabled = true;
+        };
+        
+        const nextStep = () => {
+            if (currentStep >= sortingSteps.length) {
+                isSorting = false;
+                document.getElementById('next-step').disabled = true;
+                document.getElementById('auto-sort').disabled = true;
+                document.getElementById('generateDS').disabled = false;
+                stopAutoSort();
+                return;
+            }
+            
+            const step = sortingSteps[currentStep];
+            visualizeArray(step.array, step.comparing);
+            currentStep++;
+        };
+        
+        const startAutoSort = async () => {
+            if (!isSorting) {
+                await startSort();
+            }
+            
+            const speed = document.getElementById('speed').value;
+            const delay = 1000 - (speed * 9);
+            
+            stopAutoSort();
+            autoSortInterval = setInterval(nextStep, delay);
+            
+            document.getElementById('next-step').disabled = true;
+            document.getElementById('auto-sort').textContent = 'Stop Auto';
+        };
+        
+        const stopAutoSort = () => {
+            if (autoSortInterval) {
+                clearInterval(autoSortInterval);
+                autoSortInterval = null;
+                document.getElementById('auto-sort').textContent = 'Auto Sort';
+                if (isSorting) {
+                    document.getElementById('next-step').disabled = false;
+                }
+            }
+        };
+        
+        const toggleAutoSort = () => {
+            if (autoSortInterval) {
+                stopAutoSort();
+            } else {
+                startAutoSort();
+            }
+        };
+        
+        const visualizeArray = (array, comparing = []) => {
+            const container = document.getElementById('visualization-container');
+            container.innerHTML = '';
+            
+            const maxVal = Math.max(...array);
+            const width = Math.floor((container.clientWidth - array.length * 2) / array.length);
+            
+            array.forEach((value, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                if (comparing.includes(index)) {
+                    bar.classList.add('comparing');
+                }
+                
+                const height = (value / maxVal) * (container.clientHeight - 30);
+                bar.style.height = `${height}px`;
+                bar.style.width = `${width}px`;
+                
+                const valueLabel = document.createElement('div');
+                valueLabel.className = 'bar-value';
+                valueLabel.textContent = value;
+                bar.appendChild(valueLabel);
+                
+                container.appendChild(bar);
+            });
+        };
+        
+        document.getElementById('generateDS').addEventListener('click', generateArray);
+        document.getElementById('sort').addEventListener('click', startSort);
+        document.getElementById('next-step').addEventListener('click', nextStep);
+        document.getElementById('auto-sort').addEventListener('click', toggleAutoSort);
+        document.getElementById('speed').addEventListener('input', () => {
+            if (autoSortInterval) {
+                startAutoSort(); // Restart with new speed
+            }
+        });
+        
+        // Initial array generation
+        generateArray();
+    </script>
+    {% endblock %}
+</body>
+</html>

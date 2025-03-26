@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .results-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .results-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+        .score-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #198754;
+            margin: 20px 0;
+        }
+        .question-card {
+            margin-bottom: 30px;
+            border: 1px solid rgba(0,0,0,.125);
+            border-radius: 8px;
+            padding: 20px;
+            transition: box-shadow 0.3s ease;
+        }
+        .question-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .question-number {
+            font-weight: bold;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        .question-text {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        .answer-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .selected-answer {
+            padding: 10px;
+            border-radius: 6px;
+        }
+        .selected-answer.correct {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .selected-answer.incorrect {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .correct-answer {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        .explanation-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e2e3e5;
+            border-radius: 6px;
+        }
+        .navigation-buttons {
+            text-align: center;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="results-container">
+        <div class="results-header">
+            <h2>Quiz Results</h2>
+            <div class="score-display">
+                {{ score }} / {{ total_questions }}
+            </div>
+            <p class="text-muted">
+                Score Percentage: {{ (score / total_questions * 100) | round(1) }}%
+            </p>
+        </div>
+
+        <div class="detailed-results">
+            {% for result in detailed_results %}
+                <div class="question-card">
+                    <div class="question-number">Question {{ loop.index }}</div>
+                    <div class="question-text">{{ result.question }}</div>
+
+                    <div class="answer-section">
+                        {% if result.selected_option %}
+                            <div class="selected-answer {{ 'correct' if result.is_correct else 'incorrect' }}">
+                                <strong>Your Answer:</strong> {{ result.selected_text }}
+                                {% if result.is_correct %}
+                                    <span class="ms-2">✓</span>
+                                {% else %}
+                                    <span class="ms-2">✗</span>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="selected-answer incorrect">
+                                <strong>Your Answer:</strong> Not attempted
+                            </div>
+                        {% endif %}
+
+                        {% if not result.is_correct %}
+                            <div class="correct-answer">
+                                <strong>Correct Answer:</strong> {{ result.correct_text }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="explanation-section">
+                        <strong>Explanation:</strong>
+                        <p class="mb-0 mt-2">{{ result.explanation }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="navigation-buttons">
+            <a href="{{ url_for('select_quiz') }}" class="btn btn-primary btn-lg">Take Another Quiz</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

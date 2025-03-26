@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}About - Fitness App{% endblock %}
+{% block content %}
+<section class="content">
+    <div class="left-content" style="display: block; padding: 40px;">
+
+
+        <div
+            style="background-color: #ffffff; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 30px; color: #333;font-size: 2rem;">
+                <h2 class="mb-3">Financial Literacy (Quiz / Assessment) Portal</h2>
+                <p class="text-muted">Choose your assessment preferences below</p>
+            </div>
+            <form method="POST" action="/select_questions">
+                <div style="margin-bottom: 20px;font-size: 1.2rem;">
+                    <label class="form-label fw-bold">Select Your Role</label>
+                    <select class="form-select form-select-lg mb-3" name="field" required
+                        style="font-size: 1.1rem; padding: 15px;">
+                        <option value="" selected disabled>Choose your field...</option>
+                        <option value="investor">INVESTOR</option>
+                        <option value="trader">TRADER</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 20px;font-size: 1.2rem;">
+                    <label class="form-label fw-bold">Select Proficiency</label>
+                    <select class="form-select form-select-lg mb-3" name="difficulty" id="difficulty" required
+                        style="font-size: 1.1rem; padding: 15px;">
+                        <option value="" selected disabled>Choose difficulty...</option>
+                        <option value="hard">Advanced</option>
+                        <option value="medium">Intermediate</option>
+                        <option value="low">Beginner</option>
+                    </select>
+                </div>
+
+                <div id="difficultyInfo"
+                    style="margin-top: 15px; padding: 15px; border-radius: 8px; background-color: #f8f9fa; border-left: 4px solid #0d6efd; display: none;">
+                    <p class="mb-0"><strong>Assessment Details:</strong> <span id="quizDetails"></span></p>
+                </div>
+
+                <div class="alert alert-info mt-4" role="alert">
+                    <h5 class="alert-heading">Important Information</h5>
+                    <p class="mb-0">👉 You cannot pause the assessment once started</p>
+                    <p class="mb-0">👉 Answer all questions to the best of your ability</p>
+                </div>
+
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg"
+                        style="padding: 15px 30px; font-size: 1.2rem; background: linear-gradient(45deg, #2937f0, #9f1ae2); border: none; transition: transform 0.2s;">Begin
+                        Assessment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+    <div class="right-content"><br>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 class="text-primary mb-3">Why Take This Quiz / Assessment?</h3>
+            <p class="text-muted">This assessment is designed to evaluate your financial acumen, trading mindset, and decision-making skills in the context of financial markets. It helps:</p>
+            <br>
+            <div style="margin-bottom: 10px; display: flex; align-items: start;">
+                        <i class="fas fa-check-circle mt-1" style="color: #0d6efd; margin-right: 10px;"></i>
+                        <div>
+                            <strong>Career Guidance in Finance:</strong> Identify your strengths and areas for improvement to make informed decisions about pursuing a career in trading, investing, or financial analysis.
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 10px; display: flex; align-items: start;">
+                        <i class="fas fa-check-circle mt-1" style="color: #0d6efd; margin-right: 10px;"></i>
+                        <div>
+                            <strong>Skill Assessment in Trading:</strong> Evaluate your current skill level in financial markets, risk management, and technical analysis, and determine areas that need focus.
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 10px; display: flex; align-items: start;">
+                        <i class="fas fa-check-circle mt-1" style="color: #0d6efd; margin-right: 10px;"></i>
+                        <div>
+                            <strong>Personal Development in Financial Literacy:</strong> Gain insights into your cognitive abilities, problem-solving capabilities, and understanding of financial concepts to enhance your overall financial literacy and decision-making.
+                        </div>
+                    </div>
+        </div>
+        <br>
+
+    </div>
+</section>
+<script>
+    document.getElementById('difficulty').addEventListener('change', function () {
+        const difficultyInfo = document.getElementById('difficultyInfo');
+        const quizDetails = document.getElementById('quizDetails');
+        const difficulty = this.value;
+
+        let details = '';
+        switch (difficulty) {
+            case 'hard':
+                details = '60 questions - 1 hour time limit | Recommended for professionals with 3+ years experience';
+                break;
+            case 'medium':
+                details = '30 questions - 30 minutes time limit | Suitable for individuals with 1-2 years experience';
+                break;
+            case 'low':
+                details = '30 questions - 1 hour time limit | Perfect for beginners and students';
+                break;
+        }
+
+        if (details) {
+            quizDetails.textContent = details;
+            difficultyInfo.style.display = 'block';
+        } else {
+            difficultyInfo.style.display = 'none';
+        }
+    });
+</script>
+<script src="https://kit.fontawesome.com/a076d05399.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

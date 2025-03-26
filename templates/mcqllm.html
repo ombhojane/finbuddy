@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}About - Fitness App{% endblock %}
+{% block content %}
+<style>
+    body {
+        background-color: #f0f2f5;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+    .container {
+        max-width: 800px;
+    }
+    h2 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #343a40;
+    }
+    .question-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #ffffff;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.05);
+    }
+    .choice {
+        background-color: #e9ecef;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ced4da;
+        font-size: 1.1rem;
+    }
+    .correct-answer {
+        font-weight: bold;
+        color: #28a745;
+    }
+    .print-btn {
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 1.1rem;
+        border-radius: 8px;
+        background-color: #6c757d;
+        color: white;
+        border: none;
+    }
+    .print-btn:hover {
+        background-color: #5a6268;
+    }
+</style>
+<section class="content">
+
+    <div class="container">
+        <h2 class="mt-5 mb-4 text-center">Generated MCQs</h2>
+        <div class="question-list">
+            {% for question, options in questions %}
+                <div class="card question-card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ question }}</h5>
+                        <ul class="list-unstyled">
+                            {% for option in options %}
+                                <li class="choice">{{ option }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        
+    </div>
+</section>
+{% endblock %}

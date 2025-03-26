@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}About - Fitness App{% endblock %}
+{% block content %}
+<section class="content">
+    
+    <div class="container">
+        <br>
+            <center><h1>FlashCards</h1></center>
+        {% block body %}
+        <div class="row">
+            {% for item in qna_items %}
+                <div class="col-12 mb-4">
+                    <div class="card border-light shadow-sm">
+                        <div class="card-body">
+                            <!-- <h5 class="card-title">Question {{ loop.index }}</h5> -->
+                            <h5 class="card-title">{{ item.question }}</h5>
+                            {% if item.answer %}
+                                <!-- <h5 class="card-title">Answer</h5> -->
+                                <p class="card-text">{{ item.answer }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {% endblock %}
+    </div>
+
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+</section>
+{% endblock %}

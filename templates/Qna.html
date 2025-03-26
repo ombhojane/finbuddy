@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Home - Fitness App{% endblock %}
+{% block content %}
+
+<style>
+    /* Hide default file input */
+    #pdfUpload {
+        display: none;
+    }
+    /* Custom file upload button */
+    .custom-file-upload {
+        display: inline-block;
+        padding: 10px 20px;
+        cursor: pointer;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: rgb(14, 41, 163); /* Bootstrap dark background */
+        color: white;
+        text-align: center;
+    }
+    .custom-file-upload:hover {
+        background-color: #495057; /* Darker shade on hover */
+    }
+    /* Hide processing method options initially */
+    #processingMethod {
+        display: none;
+    }
+
+    img {
+  width: 100%;
+  user-select: none;
+  pointer-events: none;
+}
+</style>
+<section class="content">
+    <div class="left-content" style="display: block; padding: 40px;">
+
+        <div class="row align-items-center d-flex justify-content-center">
+            <div class="col-12 mb-4">
+                <div class="card border-light shadow-sm components-section align-items-center d-flex justify-content-center">
+                    <div class="card-body align-items-center d-flex justify-content-center">     
+                        <div class="row mb-4">
+                            <div class="col-lg-12 col-sm-16">
+                                <h3 class="h3 text-center">GENERATE QUESTIONS & ANSWERS</h3>  
+                            </div>
+                            
+                            <div class="card-body">
+                                <form method="POST" action="test_generate" enctype="multipart/form-data">
+                                    <div class="mb-4">
+                                        <div class="form-group">
+                                            <label class="h6" for="exampleFormControlTextarea1">Input Text</label>
+                                            <textarea name="itext" class="form-control" placeholder="Input Text? (Can Contain Any Large FINANCIAL ABSTRACT which can be summarized in form of Q&A)" rows="1"></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="h6" for="pdfUpload">Upload PDF (optional)</label><br>
+                                            <label for="pdfUpload" class="custom-file-upload">
+                                                Choose File
+                                            </label>
+                                            <input type="file" name="pdf_file" class="form-control-file" id="pdfUpload" accept=".pdf">
+                                        </div>    
+                                        <div class="form-group">
+                                            <label class="my-1 mr-2" for="inlineFormCustomSelectPref">Choose Question Type</label>
+                                            <select class="custom-select my-1 mr-sm-2" id="inlineFormCustomSelectPref" name="test_type" required>
+                                                <option value="objective">Objective</option>
+                                                <option value="subjective">Subjective</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" id="processingMethod">
+                                            <label class="my-1 mr-2">Choose Processing Method</label>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="processing_method" id="processingMethodNLP" value="nlp" required>
+                                                <label class="form-check-label" for="processingMethodNLP">NLP (Fast but may produce inaccurate results)</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="processing_method" id="processingMethodLLM" value="llm" required>
+                                                <label class="form-check-label" for="processingMethodLLM">LLM (May take time but accurate)</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="h6" for="exampleFormControlTextarea1">No of Questions</label>
+                                            <input type="number" name="noq" class="form-control" placeholder="No. of Questions" min="1" required>
+                                        </div>  
+
+                                        <input type="submit" class="btn btn-dark btn-block" value="Generate" style="background-color: rgb(14, 41, 163);">
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-content">
+        <!-- Keep the user-info section -->
+        <div class="user-info">
+            <br><br>
+            <img src="{{ url_for('static', filename='frustration.jpg') }}" alt="user" />
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            $('#inlineFormCustomSelectPref').change(function() {
+                var selectedValue = $(this).val();
+                if (selectedValue === 'subjective' || selectedValue === 'objective') {
+                    $('#processingMethod').show();
+                } else {
+                    $('#processingMethod').hide();
+                }
+            });
+
+            // Show processing method initially
+            $('#processingMethod').show();
+        });
+    </script>
+
+</section>
+{% endblock %}

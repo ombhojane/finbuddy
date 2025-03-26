@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}About - Fitness App{% endblock %}
+{% block content %}
+<section class="content">
+    
+<div class="left-content" style="display: block; padding: 40px;"> 
+    <main style="display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; max-width: 1300px; margin: 0 auto; padding: 20px;">
+        
+        <header style="width: 100rem; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); padding: 20px 0; text-align: center; margin-bottom: 40px;">
+            <h1 style="margin: 0; color: rgb(14, 41, 163); font-size: 2.8em; font-weight: 700; letter-spacing: -0.5px;">English Assessment Portal</h1>
+            <p style="margin: 10px 0rem 0rem; color: #000000; font-size: 1.2em;">Evaluate and improve your English language skills</p>
+        </header>
+        <!-- Reading Assessment Card -->
+        <div style="background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); padding: 30px; width: 340px; text-align: center; transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 8px; background: #6e6e6e; border-radius: 20px 20px 0 0;"></div>
+            <div>
+                <div style="font-size: 56px; color: #646464; margin: 20px 0;">📖</div>
+                <h2 style="margin: 15px 0; font-size: 1.8em; color: #585858;"><b>Reading Assessment</b></h2>
+                <p style="margin: 15px 0; font-size: 1.1em; color: #000000; line-height: 1.6;">Challenge your ability to understand and analyze written content through engaging passages.</p>
+                <ul style="list-style: none; padding: 0; margin: 20px 0; text-align: left;">
+                    <li style="margin: 10px 0; color: #000000;"><i class="fas fa-check" style="color: #38a169; margin-right: 10px;"></i>Comprehension exercises</li>
+                    <li style="margin: 10px 0; color: #000000;"><i class="fas fa-check" style="color: #38a169; margin-right: 10px;"></i>Vocabulary assessment</li>
+                    <li style="margin: 10px 0; color: #000000;"><i class="fas fa-check" style="color: #38a169; margin-right: 10px;"></i>Critical analysis</li>
+                </ul>
+            </div>
+            <a href="/reading" style="display: inline-block; text-decoration: none; background: rgb(14, 41, 163); color: white; padding: 15px 30px; border-radius: 30px; font-size: 1.1em; font-weight: 600; transition: all 0.3s ease; border: none; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 15px rgba(49, 130, 206, 0.3);">Start Reading Test</a>
+        </div>
+
+        <!-- Listening Assessment Card -->
+        <div style="background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); padding: 30px; width: 340px; text-align: center; transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 8px; background: #686868; border-radius: 20px 20px 0 0;"></div>
+            <div>
+                <div style="font-size: 56px; color: #805ad5; margin: 20px 0;">🎧</div>
+                <h2 style="margin: 15px 0; font-size: 1.8em; color: #646464;"><b>Listening Assessment</b></h2>
+                <p style="margin: 15px 0; font-size: 1.1em; color: #000000; line-height: 1.6;">Improve your comprehension of spoken English with realistic audio exercises.</p>
+                <ul style="list-style: none; padding: 0; margin: 20px 0; text-align: left;">
+                    <li style="margin: 10px 0; color: #000000;"><i class="fas fa-check" style="color: #38a169; margin-right: 10px;"></i>Audio comprehension</li>
+                    <li style="margin: 10px 0; color: #000000;"><i class="fas fa-check" style="color: #38a169; margin-right: 10px;"></i>Note-taking practice</li>
+                    <li style="margin: 10px 0; color: #000000;"><i class="fas fa-check" style="color: #38a169; margin-right: 10px;"></i>Accent recognition</li>
+                </ul>
+            </div>
+            <a href="/listening" style="display: inline-block; text-decoration: none; background: rgb(14, 41, 163); color: white; padding: 15px 30px; border-radius: 30px; font-size: 1.1em; font-weight: 600; transition: all 0.3s ease; border: none; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 15px rgba(128, 90, 213, 0.3);">Start Listening Test</a>
+        </div>
+
+        <!-- Writing Assessment Card -->
+        <div style="background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); padding: 30px; width: 340px; text-align: center; transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 8px; background: #646464; border-radius: 20px 20px 0 0;"></div>
+            <div>
+                <div style="font-size: 56px; color: #38a169; margin: 20px 0;">✍️</div>
+                <h2 style="margin: 15px 0; font-size: 1.8em; color: #666666;"><b>Writing Assessment</b></h2>
+                <p style="margin: 15px 0; font-size: 1.1em; color: #000000; line-height: 1.6;">Enhance your writing skills by crafting thoughtful responses to provided prompts.</p>
+                <ul style="list-style: none; padding: 0; margin: 20px 0; text-align: left;">
+                    <li style="margin: 10px 0; color: #000000;"><i class="fas fa-check" style="color: #38a169; margin-right: 10px;"></i>Essay writing</li>
+                    <li style="margin: 10px 0; color: #000000;"><i class="fas fa-check" style="color: #38a169; margin-right: 10px;"></i>Grammar check</li>
+                    <li style="margin: 10px 0; color: #000000;"><i class="fas fa-check" style="color: #38a169; margin-right: 10px;"></i>Style analysis</li>
+                </ul>
+            </div>
+            <a href="/writing" style="display: inline-block; text-decoration: none; background: rgb(14, 41, 163); color: white; padding: 15px 30px; border-radius: 30px; font-size: 1.1em; font-weight: 600; transition: all 0.3s ease; border: none; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 15px rgba(56, 161, 105, 0.3);">Start Writing Test</a>
+        </div>
+    </main>
+</div>
+
+<div class="right-content" style="color: #464646"><br>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <h3 class="text-primary mb-3" style="color: #313131">Why Take This Quiz / Assessment Test?</h3>
+        <p class="text-muted">
+            This test is designed to evaluate your proficiency in English across reading, writing, and listening skills. It serves several key purposes:
+        </p>
+        <br>
+        <div style="margin-bottom: 10px; display: flex; align-items: start;">
+            <i class="fas fa-check-circle mt-1" style="color: #0d6efd; margin-right: 10px;" margin-right: 10px;"></i>
+            <div>
+                <strong>Career Guidance:</strong> Understand your strengths and identify areas for improvement to excel in your career path.
+            </div>
+        </div>
+        <div style="margin-bottom: 10px; display: flex; align-items: start;">
+            <i class="fas fa-check-circle mt-1" style="color: #0d6efd; margin-right: 10px;"></i>
+            <div>
+                <strong>Skill Assessment:</strong> Measure your English language proficiency to meet the eligibility criteria for various companies, such as Capgemini.
+            </div>
+        </div>
+        <div style="margin-bottom: 10px; display: flex; align-items: start;">
+            <i class="fas fa-check-circle mt-1" style="color: #0d6efd; margin-right: 10px;"></i>
+            <div>
+                <strong>Personal Development:</strong> Enhance your communication skills by identifying areas that need improvement through focused practice.
+            </div>
+        </div>
+        <p class="text-muted">
+            Practicing for this test not only helps you gain a competitive edge but also prepares you for success in professional assessments.
+        </p>
+    </div>
+    <br>
+</div>
+
+
+</section>
+{% endblock %}

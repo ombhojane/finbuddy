@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - FinBuddy</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #d6eaf8;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    background: #fff;
+    padding: 50px;
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    width: 900px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.image-container {
+    width: 40%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-container img {
+    width: 100%;
+    max-width: 320px;
+}
+
+.form-container {
+    width: 55%;
+    display: flex;
+    flex-direction: column;
+}
+
+h2 {
+    font-size: 36px;
+    color: #333;
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.input-field {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.input-field input {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+input:focus {
+    border-color: #4a90e2;
+    outline: none;
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    color: #fff;
+    background: #4a90e2;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+}
+
+.btn:hover {
+    background: #357abd;
+}
+
+.login-text {
+    text-align: center;
+    font-size: 14px;
+    color: #555;
+    margin: 10px 0;
+}
+
+.login-text a {
+    color: #4a90e2;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.login-text a:hover {
+    text-decoration: underline;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 20px 0;
+    color: #888;
+}
+
+.divider span {
+    flex: 1;
+    height: 1px;
+    background: #ccc;
+}
+
+.divider p {
+    margin: 0 10px;
+}
+
+.google-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    color: #555;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.google-btn:hover {
+    background: #f1f1f1;
+}
+
+.google-btn img {
+    width: 22px;
+    height: 22px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        padding: 30px;
+    }
+
+    .image-container {
+        display: none;
+    }
+
+    .form-container {
+        width: 100%;
+    }
+}
+
+    </style>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="image-container">
+        <img src="../static/finbuddy.png" alt="FinBuddy Chart with Robot">
+    </div>
+
+    <div class="form-container">
+        <h2>Sign In</h2>
+
+        <form>
+            <div class="form-group">
+                <input type="text" placeholder="First Name" required>
+                <input type="text" placeholder="Last Name" required>
+            </div>
+
+            <div class="input-field">
+                <input type="email" placeholder="E-mail" required>
+            </div>
+
+            <div class="input-field">
+                <input type="password" placeholder="Password" required>
+            </div>
+
+            <button type="submit" class="btn">Sign In</button>
+
+            <p class="login-text">
+                Already have an account? <a href="#">Login</a>
+            </p>
+
+            <div class="divider">
+                <span></span>
+                <p>OR</p>
+                <span></span>
+            </div>
+
+            <button id="googleSignInButton" class="google-btn" data-client-id="YOUR_GOOGLE_CLIENT_ID">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Google_%22G%22_Logo.svg" alt="Google Logo">
+                Sign in with Google
+            </button>
+
+        </form>
+    </div>
+
+</div>
+
+<script>
+    window.onload = function () {
+        google.accounts.id.initialize({
+            client_id: "278065291652-p0ihdmqajacn7lgvodbei0lj5nqrfrpv.apps.googleusercontent.com",
+            callback: handleCredentialResponse
+        });
+        google.accounts.id.renderButton(
+            document.getElementById('googleSignInButton'),
+            { theme: "outline", size: "large" } // Customization options
+        );
+    };
+
+    function handleCredentialResponse(response) {
+        // Send the ID token to the backend for verification
+        fetch('/auth/google', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id_token: response.credential }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '/'; // Redirect to the landing page on success
+            } else {
+                alert('Google Sign-In failed.');
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

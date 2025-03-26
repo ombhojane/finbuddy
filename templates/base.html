@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}LearnSnap- learn at FingerTip{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Custom Styles -->
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/pixel.css') }}">
+    
+
+    <!-- jQuery and Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <main>
+        <nav class="main-menu">
+            <ul>
+                <li class="nav-item">
+                <center><b><img id="logo" src="/static/finallogo.png" alt="Logo"><span class="nav-text"></span></b></center>  
+                </li>
+<hr>
+                <br>
+
+                <li class="nav-item {% if active_page == 'home' %}active{% endif %}">
+                    <b></b>
+                    <b></b>
+                    <a href="{{ url_for('index') }}">
+                        <i class="fa fa-house nav-icon"></i>
+                        <span class="nav-text">Home</span>
+                    </a>
+                </li>
+
+                <li class="nav-item {% if active_page == 'pdfmanage' %}active{% endif %}">
+                    <b></b>
+                    <b></b>
+                    <a href="{{ url_for('pdfmanage') }}">
+                        <i class="fa-brands fa-leanpub nav-icon"></i>
+                        <span class="nav-text">Materials</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if active_page == 'Qna' %}active{% endif %}">
+                    <b></b>
+                    <b></b>
+                    <a href="{{ url_for('Qna') }}">
+                        <i class="fa fa-note-sticky nav-icon"></i>
+                        <span class="nav-text">FlashCard</span>
+                    </a>
+                </li>
+
+                <li class="nav-item {% if active_page == 'select_questions' %}active{% endif %}">
+                    <b></b>
+                    <b></b>
+                    <a href="{{ url_for('select_quiz') }}">
+                        <i class="fa fa-brain nav-icon"></i>
+                        <span class="nav-text">Quiz</span>
+                    </a>
+                </li>
+
+                <li class="nav-item {% if active_page == 'assessment' %}active{% endif %}">
+                    <b></b>
+                    <b></b>
+                    <a href="{{ url_for('assessment') }}">
+                       <i class="fa-solid fa-spell-check nav-icon"></i>
+                        <span class="nav-text">Assessment</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item {% if active_page == 'notes' %}active{% endif %}">
+                    <b></b>
+                    <b></b>
+                    <a href="{{ url_for('notes') }}">
+                        <i class="fa fa-calendar-check nav-icon"></i>
+                        <span class="nav-text">Schedule</span>
+                    </a>
+                </li>
+
+                <li class="nav-item {% if active_page == 'chatbot' %}active{% endif %}">
+                    <b></b>
+                    <b></b>
+                    <a href="{{ url_for('chatbot') }}">
+                        <i class="fa fa-comment-dollar nav-icon"></i>
+                        <span class="nav-text">Flaix Assistant</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <b></b>
+                    <b></b>
+                    <a href="#">
+                        <i class="fa fa-person-running nav-icon"></i>
+                        <span class="nav-text">Activities</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Include the sidebar chatbot -->
+    {% include 'sidebar_chatbot.html' %}
+
+    <script>
+        const navItems = document.querySelectorAll(".nav-item");
+        navItems.forEach((navItem) => {
+            navItem.addEventListener("click", () => {
+                navItems.forEach((item) => {
+                    item.className = "nav-item";
+                });
+                navItem.className = "nav-item active";
+            });
+        });
+    </script>
+</body>
+</html>

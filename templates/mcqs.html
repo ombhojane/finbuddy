@@ -1,0 +1,266 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated MCQs</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .container {
+            text-align: left;
+            margin-top: 5%;
+        }
+        .card-body {
+            text-align: left;
+        }
+        .correct-answer {
+            display: none;
+        }
+        #average-cheating-percentage {
+            display: none;
+        }
+    </style>
+    <script>
+        function updateCheatingPercentage() {
+            fetch('/cheating_percentage')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('cheating-percentage').innerText = `Cheating Percentage: ${(data.cheating_percentage * 100).toFixed(2)}%`;
+                });
+        }
+        
+        function stopDetection() {
+            fetch('/stop_detection', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => console.log(data.status));
+        }
+        
+        function showResults() {
+            var correctAnswers = document.getElementsByClassName('correct-answer');
+            for (var i = 0; i < correctAnswers.length; i++) {
+                correctAnswers[i].style.display = 'block';
+            }
+            document.getElementById('show-results-btn').style.display = 'none';
+            stopDetection();
+            updateAverageCheatingPercentage();
+            hideInitialContent();
+        }
+        
+        function updateAverageCheatingPercentage() {
+            fetch('/cheating_percentage')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('average-cheating-percentage').innerText = `Average Cheating Percentage: ${(data.cheating_percentage * 100).toFixed(2)}%`;
+                    document.getElementById('average-cheating-percentage').style.display = 'block'; // Show the element
+                });
+        }
+        
+        function hideInitialContent() {
+            document.getElementById('cheating-percentage').style.display = 'none';
+            document.getElementById('video-feed').style.display = 'none';
+        }
+        
+        setInterval(updateCheatingPercentage, 1000); // Update every second
+    </script>
+</head>
+<body>
+    <h1 class="mt-4 text-center">Generated MCQs</h1>
+    <img id="video-feed" src="{{ url_for('video_feed') }}" width="600" height="400">
+    <p id="cheating-percentage">Cheating Percentage: 0%</p>
+    <div class="container" id="mcqs-container">
+        {% for index, mcq in mcqs %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Q{{ index }}: {{ mcq[0] }}?</h5>
+                    <form>
+                        {% set options = ['A', 'B', 'C', 'D'] %}
+                        {% set num_choices = mcq[1]|length %}
+                        {% for choice_index in range(num_choices) %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="answer{{ index }}" id="choice{{ index }}{{ choice_index }}" value="{{ choice_index }}">
+                                <label class="form-check-label" for="choice{{ index }}{{ choice_index }}">
+                                    {{ options[choice_index] }}: {{ mcq[1][choice_index] }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </form>
+                    <small class="text-muted correct-answer">Correct Answer: {{ mcq[2] }}</small>
+                </div>
+            </div>
+        {% endfor %}
+        <button id="show-results-btn" class="btn btn-primary" onclick="showResults()">Show Results</button>
+    </div>
+    <p id="average-cheating-percentage">Average Cheating Percentage: 0%</p>
+    <script>
+        document.getElementById('show-results-btn').addEventListener('click', function() {
+            showResults();
+            updateAverageCheatingPercentage();
+        });
+    </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated MCQs</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            color: #343a40;
+            position: relative;
+            margin-bottom: 200px; /* Ensures space for the fixed elements at the bottom */
+        }
+        .container {
+            margin-top: 3%;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .card-body {
+            padding: 2rem;
+        }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        .form-check-label {
+            margin-left: 10px;
+        }
+        .correct-answer {
+            display: none;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .fixed-bottom-right {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px; /* Adjust width as needed */
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            z-index: 1000;
+        }
+        #video-feed {
+            border-radius: 10px;
+            width: 100%;
+            height: auto;
+        }
+        #cheating-percentage, #average-cheating-percentage {
+            font-size: 1.125rem;
+            font-weight: bold;
+            color: #495057;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script>
+        let cheatingPercentageInterval;
+
+        function updateCheatingPercentage() {
+            fetch('/cheating_percentage')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('cheating-percentage').innerText = `Cheating Percentage: ${(data.cheating_percentage * 100).toFixed(2)}%`;
+                });
+        }
+        
+        function startUpdatingCheatingPercentage() {
+            if (!cheatingPercentageInterval) {
+                cheatingPercentageInterval = setInterval(updateCheatingPercentage, 1000);
+            }
+        }
+
+        function stopUpdatingCheatingPercentage() {
+            if (cheatingPercentageInterval) {
+                clearInterval(cheatingPercentageInterval);
+                cheatingPercentageInterval = null;
+            }
+        }
+        
+        function stopDetection() {
+            fetch('/stop_detection', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => console.log(data.status));
+        }
+        
+        function showResults() {
+            var correctAnswers = document.getElementsByClassName('correct-answer');
+            for (var i = 0; i < correctAnswers.length; i++) {
+                correctAnswers[i].style.display = 'block';
+            }
+            document.getElementById('show-results-btn').style.display = 'none';
+            stopDetection();
+            updateAverageCheatingPercentage();
+            hideInitialContent();
+            stopUpdatingCheatingPercentage(); // Stop updating when results are shown
+        }
+        
+        function updateAverageCheatingPercentage() {
+            fetch('/cheating_percentage')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('average-cheating-percentage').innerText = `Average Cheating Percentage: ${(data.cheating_percentage * 100).toFixed(2)}%`;
+                    document.getElementById('average-cheating-percentage').style.display = 'block'; // Show the element
+                });
+        }
+        
+        function hideInitialContent() {
+            document.getElementById('cheating-percentage').style.display = 'none';
+            document.getElementById('video-feed').style.display = 'none';
+        }
+        
+        window.onload = startUpdatingCheatingPercentage;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4 text-center mb-4">Generated MCQs</h1>
+        <div id="mcqs-container">
+            {% for index, mcq in mcqs %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Q{{ index }}: {{ mcq[0] }}?</h5>
+                        <form>
+                            {% set options = ['A', 'B', 'C', 'D'] %}
+                            {% set num_choices = mcq[1]|length %}
+                            {% for choice_index in range(num_choices) %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="answer{{ index }}" id="choice{{ index }}{{ choice_index }}" value="{{ choice_index }}">
+                                    <label class="form-check-label" for="choice{{ index }}{{ choice_index }}">
+                                        {{ options[choice_index] }}: {{ mcq[1][choice_index] }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </form>
+                        <small class="text-muted correct-answer">Correct Answer: {{ mcq[2] }}</small>
+                    </div>
+                </div>
+            {% endfor %}
+            <div class="text-center mt-4">
+                <button id="show-results-btn" class="btn btn-primary" onclick="showResults()">Show Results</button>
+            </div>
+        </div>
+        <p id="average-cheating-percentage" class="text-center mt-4">Average Cheating Percentage: 0%</p>
+    </div>
+
+    <!-- Fixed to bottom right corner -->
+    <div class="fixed-bottom-right">
+        <img id="video-feed" src="{{ url_for('video_feed') }}" alt="Video Feed">
+        <p id="cheating-percentage">Cheating Percentage: 0%</p>
+    </div>
+</body>
+</html>

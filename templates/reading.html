@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}About - Fitness App{% endblock %}
+{% block content %}
+<section>
+    <div class="left-content" style="display: block; padding: 40px;">
+    <h1 style="text-align: center; color: #1a365d; margin-bottom: 40px; font-size: 2.5rem;">Reading Practice</h1>
+    <div style="background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 30px;margin-left: 30rem;margin-right: 30rem;">
+        <h2 style="color: #2c5282; margin-top: 0; font-size: 1.5rem;">Step 1: Generate a Paragraph</h2><br>
+        <input type="text" id="topic" placeholder="Enter a topic (e.g., 'Technology', 'Nature'...)" 
+               style="width: 100%; padding: 12px 16px; font-size: 1rem; border: 2px solid #e2e8f0; border-radius: 8px; margin-bottom: 16px; box-sizing: border-box; transition: border-color 0.3s ease;">
+        <button onclick="generateParagraph()" 
+                style="background-color: #4299e1; color: white; padding: 12px 24px; font-size: 1rem; border: none; border-radius: 8px; cursor: pointer; width: 100%; box-sizing: border-box; transition: background-color 0.3s ease; font-weight: 600;">
+            Generate Paragraph
+        </button>
+        <div id="paragraphDisplay" class="hidden" style="display: none; margin-top: 24px;">
+            <h3 style="color: #2c5282; font-size: 1.2rem;">Generated Paragraph:</h3>
+            <p id="generatedParagraph" style="background-color: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0;"></p>
+        </div>
+    </div>
+    
+
+    <div id="recordingSection" style="background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 30px; display: none;;margin-left: 30rem;margin-right: 30rem;">
+        <h2 style="color: #2c5282; margin-top: 0; font-size: 1.5rem;">Step 2: Record Your Reading</h2>
+        <p style="color: #4a5568;">Press the button and read the paragraph above:</p>
+        <button id="recordButton" 
+                style="background-color: #f56565; color: white; padding: 12px 24px; font-size: 1rem; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background-color 0.3s ease;">
+            Start Recording
+        </button>
+        <div id="recordingStatus" style="display: none; margin-top: 16px; color: #e53e3e; font-weight: 600;">
+            Recording in progress 
+            <span style="display: inline-block; width: 12px; height: 12px; background-color: #e53e3e; border-radius: 50%; margin-left: 8px; animation: blink 1s infinite;"></span>
+        </div>
+        <div id="liveTranscription" style="display: none; margin-top: 24px; padding: 16px; background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <strong style="color: #2c5282;">Live Transcription:</strong>
+            <p id="liveText" style="margin-top: 8px; color: #4a5568;"></p>
+        </div>
+        <div id="finalTranscription" style="display: none; margin-top: 24px; padding: 16px; background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <strong style="color: #2c5282;">Final Transcription:</strong>
+            <p id="finalText" style="margin-top: 8px; color: #4a5568;"></p>
+        </div>
+    </div>
+
+    <div id="resultSection" style="background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);;margin-left: 30rem;margin-right: 30rem; display: none;">
+        <h2 style="color: #2c5282; margin-top: 0; font-size: 1.5rem;">Step 3: Results</h2>
+        <div>
+            <h3 style="color: #2c5282; font-size: 1.2rem;">Score: <span id="score" style="color: #4299e1;"></span>/5</h3>
+            <h3 style="color: #2c5282; font-size: 1.2rem;">Feedback:</h3>
+            <p id="feedback" style="padding: 16px; background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;"></p>
+        </div>
+    </div>
+</div>
+
+
+    <script>
+        let isRecording = false;
+        let generatedParagraph = '';
+        let completeTranscription = '';
+        let recognition;
+
+        // Initialize speech recognition
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                        completeTranscription += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                document.getElementById('liveText').innerHTML = 
+                    completeTranscription + '<i style="color: #718096;">' + interimTranscript + '</i>';
+                
+                document.getElementById('finalText').textContent = completeTranscription;
+            };
+
+            recognition.onend = function() {
+                if (isRecording) {
+                    recognition.start();
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                if (isRecording) {
+                    recognition.start();
+                }
+            };
+        }
+
+        async function generateParagraph() {
+            const topic = document.getElementById('topic').value;
+            if (!topic) {
+                alert('Please enter a topic');
+                return;
+            }
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `topic=${encodeURIComponent(topic)}`
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                generatedParagraph = data.paragraph;
+                document.getElementById('generatedParagraph').textContent = generatedParagraph;
+                document.getElementById('paragraphDisplay').style.display = 'block';
+                document.getElementById('recordingSection').style.display = 'block';
+            } catch (error) {
+                alert('Error generating paragraph');
+                console.error(error);
+            }
+        }
+
+        async function evaluateTranscription() {
+            if (!generatedParagraph || !completeTranscription) {
+                console.error('Missing data:', {
+                    generatedParagraph: !!generatedParagraph,
+                    completeTranscription: !!completeTranscription
+                });
+                alert('Please ensure you have generated a paragraph and recorded some text');
+                return;
+            }
+
+            try {
+                const response = await fetch('/evaluatereading', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        paragraph: generatedParagraph.trim(),
+                        transcription: completeTranscription.trim()
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                document.getElementById('score').textContent = data.score;
+                document.getElementById('feedback').textContent = data.feedback;
+                document.getElementById('resultSection').style.display = 'block';
+            } catch (error) {
+                alert('Error evaluating transcription');
+                console.error(error);
+            }
+        }
+
+        document.getElementById('recordButton').addEventListener('click', () => {
+            if (!isRecording) {
+                if (!generatedParagraph) {
+                    alert('Please generate a paragraph first');
+                    return;
+                }
+                completeTranscription = '';
+                recognition.start();
+                isRecording = true;
+                document.getElementById('recordButton').textContent = 'Stop Recording';
+                document.getElementById('recordButton').style.backgroundColor = '#c53030';
+                document.getElementById('liveTranscription').style.display = 'block';
+                document.getElementById('finalTranscription').style.display = 'block';
+                document.getElementById('recordingStatus').style.display = 'block';
+                document.getElementById('liveText').textContent = '';
+                document.getElementById('finalText').textContent = '';
+                document.getElementById('resultSection').style.display = 'none';
+            } else {
+                recognition.stop();
+                isRecording = false;
+                document.getElementById('recordButton').textContent = 'Start Recording';
+                document.getElementById('recordButton').style.backgroundColor = '#f56565';
+                document.getElementById('recordingStatus').style.display = 'none';
+                
+                setTimeout(() => {
+                    document.getElementById('finalText').textContent = completeTranscription.trim();
+                    evaluateTranscription();
+                }, 500);
+            }
+        });
+
+        // Add keyframe animation for the recording indicator
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes blink {
+                0% { opacity: 1; }
+                50% { opacity: 0; }
+                100% { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</section>
+{% endblock %}

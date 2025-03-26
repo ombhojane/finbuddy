@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+{% block title %}Home - FinBuddy{% endblock %}
+{% block content %}
+<style>
+    .calendar-day.has-note {
+        background-color: #EEF2FF;
+        font-weight: bold;
+    }
+
+    .calendar-day {
+        width: calc(100% / 7);
+        aspect-ratio: 1;
+        color: #374151;
+        /* Default text color (gray-700) */
+    }
+
+    .calendar-day.today {
+        border: 2px solid #4F46E5;
+        color: black;
+        /* Today's date in black */
+    }
+
+    .calendar-day.due-date {
+        color: #EF4444;
+        /* Due dates in red */
+        font-weight: bold;
+    }
+</style>
+<style>
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    .welcome-banner {
+        background-color: rgb(14, 41, 163);;
+        border-radius: 12px;
+        padding: 24px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .welcome-banner h1 {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+
+    .welcome-banner p {
+        font-size: 14px;
+        margin-bottom: 16px;
+        opacity: 0.9;
+    }
+
+    .welcome-banner button {
+        background-color: white;
+        color: #000000;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .welcome-banner button:hover {
+        background-color: #f0f0f0;
+    }
+
+    .tools-section h2 {
+        font-size: 20px;
+        margin-bottom: 16px;
+        color: rgb(0, 0, 0);
+    }
+
+    .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .tool-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
+        cursor: pointer;
+    }
+
+    .tool-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .tool-card .icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .aptitude .icon {
+        background-color: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .flashcard .icon {
+        background-color: #f3e5f5;
+        color: #7b1fa2;
+    }
+
+    .datastructure .icon {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .english .icon {
+        background-color: #fff3e0;
+        color: #ef6c00;
+    }
+
+    .notes .icon {
+        background-color: #fce4ec;
+        color: #c2185b;
+    }
+
+    .calendar .icon {
+        background-color: #f3e5f5;
+        color: #6a1b9a;
+    }
+
+    .tool-card h3 {
+        font-size: 18px;
+        margin-bottom: 8px;
+        color: rgb(0, 0, 0);
+    }
+
+    .tool-card p {
+        font-size: 14px;
+        color: #000000;
+        line-height: 1.5;
+    }
+</style>
+
+<section class="content">
+    <div class="left-content" style="display: block; padding: 40px;">
+        <div class="container">
+            <div class="main-content">
+                <div class="welcome-banner">
+                    <h1>Welcome to FinBuddy - Your AI Powered Financial Advisor</h1>
+                    <p>Access powerful learning tools designed to enhance your financial literacy journey</p>
+                    <button><b>EXPLORE TOOLS →</b></button>
+                </div>
+
+                <div class="tools-section">
+                    <h2>Available Features & Tools</h2><a href="{{ url_for('select_quiz') }}">
+                    <div class="tools-grid">
+                        <div class="tool-card aptitude">
+                            <div class="icon">🧮</div>
+                            <h3><b>Quiz / Assessments</b></h3>
+                            <p>Enhance your logical reasoning and problem-solving skills with targeted practice tests
+                            </p>
+                        </div></a>
+                        <a href="{{ url_for('Qna') }}">
+                        <div class="tool-card flashcard">
+                            <div class="icon">🎴</div>
+                            <h3><b>Flash Card Generator</b></h3>
+                            <p>Create custom flashcards to memorize key concepts and test your knowledge effectively</p>
+                        </div>
+                    </a>
+                        <a href="{{ url_for('DSV') }}"><div class="tool-card datastructure">
+                            <div class="icon">📊</div>
+                            <h3><b>Data Structure Visualizer</b></h3>
+                            <p>Interactive visualizations to understand complex data structures and algorithms</p>
+                        </div></a>
+                        <a href="{{ url_for('assessment') }}">
+                        <div class="tool-card english">
+                            <div class="icon">📝</div>
+                            <h3><b>English Assessment</b></h3>
+                            <p>Evaluate and improve your English language proficiency through comprehensive tests</p>
+                        </div>
+                        </a>
+                        <a href="{{ url_for('pdfmanage') }}">
+                            <div class="tool-card notes">
+                                <div class="icon">📓</div>
+                                <h3><b>Smart Notes</b></h3>
+                                <p>Organize and manage your study notes with our intelligent note-taking system</p>
+                            </div>
+                        </a>
+
+                        <a href="{{ url_for('notes') }}">
+                        <div class="tool-card calendar">
+                            <div class="icon">📅</div>
+                            <h3><b>Schedule Calendar</b></h3>
+                            <p>Plan your study sessions and track important academic deadlines efficiently</p>
+                        </div>
+                        </a>
+
+                        <a href="{{ url_for('research') }}">
+                            <div class="tool-card calendar">
+                                <div class="icon">🔍</div>
+                                <h3><b>Research Assistant</b></h3>
+                                <p>Effortlessly find precise answers with our intelligent search tool powered by RAG technology.</p>
+                            </div>
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-content"><br>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div class="quote-card">
+                <p class="quote-text" id="quote-text">"The beautiful thing about learning is that no one can take it
+                    away from you."</p>
+                <span class="quote-author" id="quote-author">- B.B. King</span>
+            </div>
+        </div>
+        <br>
+        <!-- Keep the user-info section -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <center>
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Calender</h2>
+            </center>
+            <div class="mb-4 flex justify-between items-center">
+                <button onclick="previousMonth()" class="text-gray-600 hover:text-gray-900">&larr;</button>
+                <span id="currentMonth" class="font-medium"></span>
+                <button onclick="nextMonth()" class="text-gray-600 hover:text-gray-900">&rarr;</button>
+            </div>
+            <div class="grid grid-cols-7 gap-1 text-center mb-2">
+                <div class="text-xs font-medium text-gray-500">Sun</div>
+                <div class="text-xs font-medium text-gray-500">Mon</div>
+                <div class="text-xs font-medium text-gray-500">Tue</div>
+                <div class="text-xs font-medium text-gray-500">Wed</div>
+                <div class="text-xs font-medium text-gray-500">Thu</div>
+                <div class="text-xs font-medium text-gray-500">Fri</div>
+                <div class="text-xs font-medium text-gray-500">Sat</div>
+            </div>
+            <div id="calendar" class="grid grid-cols-7 gap-1"></div>
+        </div>
+    </div>
+
+</section>
+
+<!-- Copy all the content section from the original HTML here -->
+<!-- This includes the left-content and right-content divs -->
+<script>
+    function toggleNewNoteForm() {
+        const form = document.getElementById('newNoteForm');
+        form.classList.toggle('hidden');
+    }
+
+    // Calendar functionality
+    let currentDate = new Date();
+    const dueDates = [
+        {% for note in upcoming_notes %}
+    new Date("{{ note.due_date.strftime('%Y-%m-%d') }}"),
+        {% endfor %}
+        ];
+
+    function renderCalendar() {
+        const calendar = document.getElementById('calendar');
+        const monthLabel = document.getElementById('currentMonth');
+        calendar.innerHTML = '';
+
+        const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+        // Update month label
+        monthLabel.textContent = firstDay.toLocaleDateString('default', { month: 'long', year: 'numeric' });
+
+        // Add empty cells for days before the first of the month
+        for (let i = 0; i < firstDay.getDay(); i++) {
+            calendar.appendChild(createDayElement(''));
+        }
+
+        // Get today's date for comparison
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Add days of the month
+        for (let day = 1; day <= lastDay.getDate(); day++) {
+            const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+            const hasDueDate = dueDates.some(dueDate =>
+                dueDate.getDate() === date.getDate() &&
+                dueDate.getMonth() === date.getMonth() &&
+                dueDate.getFullYear() === date.getFullYear()
+            );
+
+            const isToday = date.getTime() === today.getTime();
+            calendar.appendChild(createDayElement(day, hasDueDate, isToday));
+        }
+    }
+
+    function createDayElement(day, hasDueDate = false, isToday = false) {
+        const div = document.createElement('div');
+        div.textContent = day;
+
+        let classes = ['calendar-day', 'flex', 'items-center', 'justify-center', 'text-sm'];
+
+        if (hasDueDate) classes.push('due-date');
+        if (isToday) classes.push('today');
+        if (day === '') {
+            classes.push('text-gray-300');
+        } else {
+            classes.push('hover:bg-gray-50', 'cursor-pointer');
+        }
+
+        div.className = classes.join(' ');
+        return div;
+    }
+
+    function previousMonth() {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+    }
+
+    function nextMonth() {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+    }
+
+    // Initial render
+    renderCalendar();
+</script>
+{% endblock %}
