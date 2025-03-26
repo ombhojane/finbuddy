@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In - FinBuddy</title>
+    <title>Sign Up - FinBuddy</title>
     <link rel="stylesheet" href="style.css">
     <style>
         
@@ -193,7 +193,10 @@ input:focus {
 }
 
     </style>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Add Firebase CDN Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -204,23 +207,23 @@ input:focus {
     </div>
 
     <div class="form-container">
-        <h2>Sign In</h2>
+        <h2>Sign Up</h2>
 
-        <form>
+        <form id="signupForm">
             <div class="form-group">
-                <input type="text" placeholder="First Name" required>
-                <input type="text" placeholder="Last Name" required>
+                <input type="text" id="firstName" placeholder="First Name" required>
+                <input type="text" id="lastName" placeholder="Last Name" required>
             </div>
 
             <div class="input-field">
-                <input type="email" placeholder="E-mail" required>
+                <input type="email" id="email" placeholder="E-mail" required>
             </div>
 
             <div class="input-field">
-                <input type="password" placeholder="Password" required>
+                <input type="password" id="password" placeholder="Password" required>
             </div>
 
-            <button type="submit" class="btn">Sign In</button>
+            <button type="submit" class="btn">Sign Up</button>
 
             <p class="login-text">
                 Already have an account? <a href="#">Login</a>
@@ -232,9 +235,9 @@ input:focus {
                 <span></span>
             </div>
 
-            <button id="googleSignInButton" class="google-btn" data-client-id="YOUR_GOOGLE_CLIENT_ID">
+            <button type="button" onclick="googleSignIn()" class="google-btn">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Google_%22G%22_Logo.svg" alt="Google Logo">
-                Sign in with Google
+                Sign up with Google
             </button>
 
         </form>
@@ -242,35 +245,75 @@ input:focus {
 
 </div>
 
+<!-- Ensure this script is placed after the Firebase SDKs -->
 <script>
-    window.onload = function () {
-        google.accounts.id.initialize({
-            client_id: "278065291652-p0ihdmqajacn7lgvodbei0lj5nqrfrpv.apps.googleusercontent.com",
-            callback: handleCredentialResponse
-        });
-        google.accounts.id.renderButton(
-            document.getElementById('googleSignInButton'),
-            { theme: "outline", size: "large" } // Customization options
-        );
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyD7KCHRirx7lI2kLOm7-qI5v8Pz3-5DL6M",
+        authDomain: "finbuddy-141ea.firebaseapp.com",
+        projectId: "finbuddy-141ea",
+        storageBucket: "finbuddy-141ea.firebasestorage.app",
+        messagingSenderId: "1049436840406",
+        appId: "1:1049436840406:web:4510f373f3651136bd4477"
     };
 
-    function handleCredentialResponse(response) {
-        // Send the ID token to the backend for verification
-        fetch('/auth/google', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ id_token: response.credential }),
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                window.location.href = '/'; // Redirect to the landing page on success
-            } else {
-                alert('Google Sign-In failed.');
-            }
-        });
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Handle email/password sign-up
+    document.getElementById('signupForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const firstName = document.getElementById('firstName').value;
+        const lastName = document.getElementById('lastName').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        auth.createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                const user = userCredential.user;
+                // Store additional user data in Firestore
+                return db.collection('users').doc(user.uid).set({
+                    firstName,
+                    lastName,
+                    email,
+                    createdAt: new Date()
+                });
+            })
+            .then(() => {
+                alert('Sign-up successful!');
+                window.location.href = '/'; // Redirect to the landing page
+            })
+            .catch((error) => {
+                console.error('Error during sign-up:', error);
+                alert(error.message);
+            });
+    });
+
+    // Google Sign-In
+    function googleSignIn() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider)
+            .then((result) => {
+                const user = result.user;
+                // Store user data in Firestore
+                return db.collection('users').doc(user.uid).set({
+                    firstName: user.displayName.split(' ')[0],
+                    lastName: user.displayName.split(' ').slice(1).join(' '),
+                    email: user.email,
+                    photoURL: user.photoURL,
+                    createdAt: new Date()
+                }, { merge: true });
+            })
+            .then(() => {
+                alert('Google Sign-In successful!');
+                window.location.href = '/'; // Redirect to the landing page
+            })
+            .catch((error) => {
+                console.error('Error during Google Sign-In:', error);
+                alert(error.message);
+            });
     }
 </script>
 

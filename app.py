@@ -52,6 +52,12 @@ import re
 from google import genai
 from google.genai import types
 
+import firebase_admin
+from firebase_admin import credentials, auth
+
+# Initialize Firebase Admin SDK
+cred = credentials.Certificate("finbuddy-141ea-firebase-adminsdk-fbsvc-20a9da85e3.json")  # Replace with your Firebase Admin SDK JSON file
+firebase_admin.initialize_app(cred)
 
 app = Flask(__name__)
 Bootstrap(app)
@@ -2037,6 +2043,26 @@ def google_callback():
     """
     
     return redirect(url_for('landingpage'))
+
+@app.route('/auth/firebase', methods=['POST'])
+def firebase_auth():
+    data = request.json
+    try:
+        # Verify the Firebase ID token
+        decoded_token = auth.verify_id_token(data.get('uid'))
+        user_id = decoded_token['uid']
+        email = data.get('email')
+        name = data.get('name')
+
+        # Store user info in session
+        session['user_id'] = user_id
+        session['email'] = email
+        session['name'] = name
+
+        # Perform additional user registration or login logic if needed
+        return jsonify(success=True, message="Firebase Sign-In successful")
+    except Exception as e:
+        return jsonify(success=False, message=str(e))
 
 if __name__ == '__main__':
     app.run(debug=True)
