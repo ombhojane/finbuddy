@@ -1,427 +1,438 @@
-{% extends 'index.html' %}
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot - FinBuddy</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
-{% block content %}
-<div class="content-wrapper">
-    <div class="chatbot-container">
-        <div class="chatbot-card">
-            <div class="chatbot-header">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-robot mr-2"></i>
-                    <h4 class="mb-0">Flaix Assistant</h4>
-                </div>
-                <div class="chat-actions">
-                    <button id="clear-chat" class="action-btn" title="Clear chat">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div id="chat-messages" class="chat-messages">
-                <div class="message system-message">
-                    <div class="message-content">
-                        <p>Hi there! I'm Flaix, your financial assistant. How can I help you today?</p>
-                    </div>
-                </div>
-            </div>
-            
-            <form id="chat-form" class="chat-form">
-                <input type="text" id="user-input" placeholder="Ask something..." required>
-                <button type="submit">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </form>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #eaf6ff;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            background: #fff;
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            display: flex;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 25%;
+            background-color: #f4f8fc;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border-right: 1px solid #ddd;
+        }
+
+        .sidebar h2 {
+            font-size: 24px;
+            color: #4a90e2;
+            font-weight: 600;
+        }
+
+        .sidebar button {
+            padding: 10px 15px;
+            font-size: 14px;
+            color: #4a90e2;
+            background: #fff;
+            border: 1px solid #4a90e2;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .sidebar button:hover {
+            background: #4a90e2;
+            color: #fff;
+        }
+
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #eaf6ff;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background-color: #4a90e2;
+            color: #fff;
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header .status {
+            font-size: 14px;
+            color: #d4f1ff;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chat-box .message {
+            padding: 10px 15px;
+            border-radius: 12px;
+            max-width: 70%;
+        }
+
+        .chat-box .message.user {
+            background-color: #4a90e2;
+            color: #fff;
+            align-self: flex-end;
+        }
+
+        .chat-box .message.bot {
+            background-color: #fff;
+            color: #333;
+            border: 1px solid #ddd;
+            align-self: flex-start;
+        }
+
+        .chat-input {
+            padding: 20px;
+            display: flex;
+            gap: 10px;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        .chat-input button {
+            padding: 12px 20px;
+            font-size: 16px;
+            color: #fff;
+            background: #4a90e2;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .chat-input button:hover {
+            background: #357abd;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                flex-direction: column;
+                height: 100vh;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+            }
+
+            .chat-main {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="sidebar">
+        <h2>History</h2>
+        <button>What are Tax-Saving investment options in India?</button>
+        <button>What are Mutual Funds?</button>
+        <button>What are the current Trending Stocks?</button>
+    </div>
+    <div class="chat-main">
+        <div class="chat-header">
+            <span>FinBuddy <span class="status">● online</span></span>
+            <span>Share</span>
+        </div>
+        <div class="chat-box" id="chatBox">
+        </div>
+        <div class="chat-input">
+            <input type="text" id="userInput" placeholder="Ask Anything" />
+            <button onclick="sendMessage()">Send</button>
         </div>
     </div>
 </div>
 
-<style>
-    .content-wrapper {
-        padding: 20px;
-        margin-left: 80px;
-        width: calc(100% - 80px);
-        min-height: 100vh;
-        transition: all 0.3s ease;
-    }
-    
-    @media (min-width: 992px) {
-        .content-wrapper {
-            margin-left: 240px;
-            width: calc(100% - 240px);
-        }
-    }
-    
-    .chatbot-container {
-        max-width: 900px;
-        margin: 0 auto;
-        height: calc(100vh - 80px);
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .chatbot-card {
-        background-color: white;
-        border-radius: 16px;
-        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        overflow: hidden;
-    }
-    
-    .chatbot-header {
-        padding: 18px 24px;
-        background: linear-gradient(to right, #0e29a3, #1e40af);
-        color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .chatbot-header h4 {
-        margin: 0;
-        font-size: 18px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-    }
-    
-    .chatbot-header i {
-        font-size: 20px;
-        margin-right: 10px;
-    }
-    
-    .chat-actions {
-        display: flex;
-        gap: 10px;
-    }
-    
-    .action-btn {
-        background: rgba(255, 255, 255, 0.15);
-        border: none;
-        color: white;
-        cursor: pointer;
-        padding: 6px;
-        border-radius: 50%;
-        width: 34px;
-        height: 34px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.2s ease;
-    }
-    
-    .action-btn:hover {
-        background-color: rgba(255, 255, 255, 0.25);
-    }
-    
-    .chat-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 24px;
-        background-color: #f8f9fa;
-        scrollbar-width: thin;
-        scrollbar-color: rgba(131, 135, 193, 0.4) transparent;
-    }
-    
-    .chat-messages::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    .chat-messages::-webkit-scrollbar-track {
-        background: transparent;
-    }
-    
-    .chat-messages::-webkit-scrollbar-thumb {
-        background-color: rgba(131, 135, 193, 0.4);
-        border-radius: 6px;
-    }
-    
-    .message {
-        margin-bottom: 20px;
-        display: flex;
-        flex-direction: column;
-        max-width: 80%;
-    }
-    
-    .user-message {
-        align-items: flex-end;
-        margin-left: auto;
-    }
-    
-    .system-message {
-        align-items: flex-start;
-    }
-    
-    .message-content {
-        padding: 14px 18px;
-        border-radius: 16px;
-        font-size: 15px;
-        line-height: 1.5;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        overflow-wrap: break-word;
-    }
-    
-    .message-content p {
-        margin: 0 0 10px 0;
-    }
-    
-    .message-content p:last-child {
-        margin-bottom: 0;
-    }
-    
-    .user-message .message-content {
-        background-color: #0e29a3;
-        color: white;
-        border-bottom-right-radius: 4px;
-    }
-    
-    .system-message .message-content {
-        background-color: white;
-        color: #333;
-        border: 1px solid #eee;
-        border-bottom-left-radius: 4px;
-    }
-    
-    .message pre {
-        background-color: rgba(0, 0, 0, 0.05);
-        padding: 10px;
-        border-radius: 8px;
-        overflow-x: auto;
-        margin: 8px 0;
-        font-size: 14px;
-    }
-    
-    .user-message .message-content pre {
-        background-color: rgba(255, 255, 255, 0.15);
-        color: white;
-    }
-    
-    .chat-form {
-        display: flex;
-        padding: 16px;
-        background-color: white;
-        border-top: 1px solid #eaeef2;
-    }
-    
-    .chat-form input {
-        flex: 1;
-        padding: 12px 18px;
-        border: 1px solid #e0e4e8;
-        border-radius: 24px;
-        margin-right: 10px;
-        font-size: 15px;
-        transition: all 0.2s ease;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05) inset;
-    }
-    
-    .chat-form input:focus {
-        outline: none;
-        border-color: #0e29a3;
-        box-shadow: 0 0 0 3px rgba(14, 41, 163, 0.15);
-    }
-    
-    .chat-form button {
-        background: linear-gradient(135deg, #0e29a3, #1e40af);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 45px;
-        height: 45px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 3px 8px rgba(14, 41, 163, 0.3);
-        transition: all 0.2s ease;
-    }
-    
-    .chat-form button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(14, 41, 163, 0.4);
-    }
-    
-    .chat-form button:active {
-        transform: translateY(1px);
-        box-shadow: 0 2px 5px rgba(14, 41, 163, 0.3);
-    }
-    
-    .chat-form button i {
-        font-size: 18px;
-    }
-    
-    .typing-indicator {
-        display: inline-block;
-        padding: 14px 18px;
-        border-radius: 16px;
-        background-color: white;
-        border: 1px solid #eee;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    }
-    
-    .typing-indicator span {
-        display: inline-block;
-        width: 7px;
-        height: 7px;
-        background-color: #0e29a3;
-        border-radius: 50%;
-        animation: typing 1s infinite ease-in-out;
-        margin: 0 2px;
-        opacity: 0.6;
-    }
-    
-    .typing-indicator span:nth-child(2) {
-        animation-delay: 0.2s;
-    }
-    
-    .typing-indicator span:nth-child(3) {
-        animation-delay: 0.4s;
-    }
-    
-    @keyframes typing {
-        0% { transform: translateY(0px); }
-        28% { transform: translateY(-5px); }
-        44% { transform: translateY(0px); }
-    }
-    
-    @media (max-width: 768px) {
-        .message {
-            max-width: 90%;
-        }
-        
-        .chatbot-container {
-            height: calc(100vh - 100px);
-        }
-    }
-</style>
-
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const chatMessages = document.getElementById('chat-messages');
-        const chatForm = document.getElementById('chat-form');
-        const userInput = document.getElementById('user-input');
-        const clearChatBtn = document.getElementById('clear-chat');
-        
-        function scrollToBottom() {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-        
-        function addMessage(content, isUser = false) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user-message' : 'system-message'}`;
-            
-            const messageContent = document.createElement('div');
-            messageContent.className = 'message-content';
-            
-            // Check if the content contains code blocks
-            if (content.includes('```')) {
-                const parts = content.split(/```([\s\S]*?)```/g);
-                for (let i = 0; i < parts.length; i++) {
-                    if (i % 2 === 0) {
-                        // Regular text
-                        if (parts[i].trim()) {
-                            const textParts = parts[i].split('\n\n');
-                            textParts.forEach(part => {
-                                if (part.trim()) {
-                                    const p = document.createElement('p');
-                                    p.textContent = part.trim();
-                                    messageContent.appendChild(p);
-                                }
-                            });
-                        }
-                    } else {
-                        // Code block
-                        const pre = document.createElement('pre');
-                        pre.textContent = parts[i];
-                        messageContent.appendChild(pre);
-                    }
-                }
-            } else {
-                // No code blocks, split by double newlines
-                const paragraphs = content.split('\n\n');
-                paragraphs.forEach(paragraph => {
-                    if (paragraph.trim()) {
-                        const p = document.createElement('p');
-                        p.textContent = paragraph.trim();
-                        messageContent.appendChild(p);
-                    }
-                });
-            }
-            
-            messageDiv.appendChild(messageContent);
-            chatMessages.appendChild(messageDiv);
-            scrollToBottom();
-        }
-        
-        function addTypingIndicator() {
-            const indicatorDiv = document.createElement('div');
-            indicatorDiv.className = 'message system-message';
-            indicatorDiv.id = 'typing-indicator';
-            
-            const indicator = document.createElement('div');
-            indicator.className = 'typing-indicator';
-            indicator.innerHTML = '<span></span><span></span><span></span>';
-            
-            indicatorDiv.appendChild(indicator);
-            chatMessages.appendChild(indicatorDiv);
-            scrollToBottom();
-        }
-        
-        function removeTypingIndicator() {
-            const indicator = document.getElementById('typing-indicator');
-            if (indicator) {
-                indicator.remove();
-            }
-        }
-        
-        chatForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const message = userInput.value.trim();
-            if (!message) return;
-            
-            // Add user message to chat
-            addMessage(message, true);
-            
-            // Clear input field
-            userInput.value = '';
-            
-            // Add typing indicator
-            addTypingIndicator();
-            
-            // Send message to backend
-            fetch('/ask', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ query: message }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Remove typing indicator
-                removeTypingIndicator();
-                
-                // Add response to chat
-                addMessage(data.response);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                removeTypingIndicator();
-                addMessage('Sorry, I encountered an error. Please try again.');
-            });
-        });
-        
-        clearChatBtn.addEventListener('click', function() {
-            while (chatMessages.firstChild) {
-                chatMessages.removeChild(chatMessages.firstChild);
-            }
-            
-            // Add welcome message
-            addMessage('Hi there! I\'m Flaix, your financial assistant. How can I help you today?');
-        });
+    function sendMessage() {
+        const userInput = document.getElementById('userInput');
+        const chatBox = document.getElementById('chatBox');
 
-        // Focus input field on page load
-        userInput.focus();
-    });
+        if (userInput.value.trim() !== "") {
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user';
+            userMessage.textContent = userInput.value;
+            chatBox.appendChild(userMessage);
+
+            // Simulate bot response
+            const botMessage = document.createElement('div');
+            botMessage.className = 'message bot';
+            botMessage.textContent = `FinBuddy: I'm here to help!`;
+            chatBox.appendChild(botMessage);
+
+            userInput.value = "";
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    }
 </script>
-{% endblock %} 
+
+</body>
+</html> -->
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinBuddy Chatbot</title>
+    <style>
+        /* General styling */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Main container layout */
+.chat-container {
+    display: flex;
+    height: 100vh;
+}
+
+/* Sidebar styling */
+.sidebar {
+    width: 20%;
+    background: #f1f1f1;
+    padding: 20px;
+    border-right: 1px solid #ccc;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #333;
+    cursor: pointer;
+}
+
+.icons span {
+    font-size: 18px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+/* Main chat area */
+.main-chat {
+    width: 80%;
+    background: #e0f0ff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Header Styling */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background: #ffffff;
+    border-bottom: 1px solid #ccc;
+}
+
+.header h1 {
+    font-size: 24px;
+}
+
+.fin {
+    color: #0066ff;
+    font-weight: bold;
+}
+
+.buddy {
+    color: #333;
+    font-weight: bold;
+}
+
+.status {
+    font-size: 14px;
+    color: #4CAF50;
+}
+
+.actions span {
+    margin-left: 15px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* Chat area */
+.chat-area {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 70px);
+}
+
+.chat-suggestions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.chat-suggestions button {
+    background: #ffffff;
+    border: 1px solid #ccc;
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.chat-suggestions button:hover {
+    background: #f0f0f0;
+}
+
+.input-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 60%;
+}
+
+.input-area input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+    font-size: 14px;
+}
+
+.voice-btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.voice-btn:hover {
+    background: #45a049;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .sidebar {
+        display: none;
+    }
+    .main-chat {
+        width: 100%;
+    }
+    .chat-suggestions {
+        flex-direction: column;
+        align-items: center;
+    }
+    .input-area {
+        width: 90%;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+    
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <button class="back-btn">&larr; History</button>
+                <div class="icons">
+                    <span>🔍</span>
+                    <span>💬</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Chat Section -->
+        <div class="main-chat">
+            
+            <!-- Header -->
+            <div class="header">
+                <img src="../static/finallogo.png" alt="" style: width="150px";>
+                <span class="status">🟢 online</span>
+                <div class="actions">
+                    <span>🔗 Share</span>
+                    <span>👤</span>
+                </div>
+            </div>
+
+            <!-- Chat area -->
+            <div class="chat-area">
+                <div class="chat-suggestions">
+                    <button>What are Tax-Saving investment options in India?</button>
+                    <button>What are Mutual Funds?</button>
+                    <button>What are the current Trending Stocks?</button>
+                </div>
+                
+                <div class="input-area">
+                    <input type="text" placeholder="Ask Anything">
+                    <button class="voice-btn">🔊</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
