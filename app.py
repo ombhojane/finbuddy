@@ -2011,27 +2011,22 @@ def search():
 ############### END ######################
 
 
-GOOGLE_CLIENT_ID = "278065291652-p0ihdmqajacn7lgvodbei0lj5nqrfrpv.apps.googleusercontent.com"  # Replace with the correct Client ID
-GOOGLE_CLIENT_SECRET = "YOUR_GOOGLE_CLIENT_SECRET"  # Replace with the correct Client Secret
-from google.auth.transport.requests import Request  # Ensure this is imported
-# ...existing code...
+GOOGLE_CLIENT_ID = "278065291652-p0ihdmqajacn7lgvodbei0lj5nqrfrpv.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = "YOUR_GOOGLE_CLIENT_SECRET"  #
+from google.auth.transport.requests import Request
 
 @app.route('/auth/google', methods=['POST'])
 def google_auth():
     token = request.json.get('id_token')
     try:
-        # Instantiate the Request object correctly
         request_instance = Request()
 
-        # Verify the token
         idinfo = id_token.verify_oauth2_token(token, request_instance, GOOGLE_CLIENT_ID)
 
-        # Extract user information
         user_id = idinfo['sub']
         email = idinfo['email']
         name = idinfo['name']
 
-        # Perform user login or registration logic here
         return jsonify(success=True, message="Google Sign-In successful")
     except ValueError:
         return jsonify(success=False, message="Invalid token")
@@ -2048,21 +2043,22 @@ def google_callback():
 def firebase_auth():
     data = request.json
     try:
-        # Verify the Firebase ID token
         decoded_token = auth.verify_id_token(data.get('uid'))
         user_id = decoded_token['uid']
         email = data.get('email')
         name = data.get('name')
 
-        # Store user info in session
         session['user_id'] = user_id
         session['email'] = email
         session['name'] = name
 
-        # Perform additional user registration or login logic if needed
         return jsonify(success=True, message="Firebase Sign-In successful")
     except Exception as e:
         return jsonify(success=False, message=str(e))
+
+@app.route('/quizpage')
+def quizpage():
+    return render_template('quizpage.html', active_page='quizpage')
 
 if __name__ == '__main__':
     app.run(debug=True)

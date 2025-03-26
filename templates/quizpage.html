@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz - FinBuddy</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .quiz-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            width: 600px;
+            text-align: center;
+        }
+
+        .question {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .options button {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #f9f9f9;
+            transition: 0.3s;
+        }
+
+        .options button:hover {
+            background: #e0e0e0;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #4a90e2;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            transition: width 0.3s;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="progress-bar" id="progressBar" style="width: 50%;"></div>
+    <div class="question" id="question">Are you an Investor or a Trader?</div>
+    <div class="options" id="options">
+        <button onclick="selectOption('Investor')">I am an Investor</button>
+        <button onclick="selectOption('Trader')">I am a Trader</button>
+    </div>
+</div>
+
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyD7KCHRirx7lI2kLOm7-qI5v8Pz3-5DL6M",
+        authDomain: "finbuddy-141ea.firebaseapp.com",
+        projectId: "finbuddy-141ea",
+        storageBucket: "finbuddy-141ea.firebasestorage.app",
+        messagingSenderId: "1049436840406",
+        appId: "1:1049436840406:web:4510f373f3651136bd4477"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentQuestion = 0;
+    const questions = [
+        {
+            text: "Are you an Investor or a Trader?",
+            options: ["Investor", "Trader"]
+        },
+        {
+            text: "How much Understanding do you have?",
+            options: ["I'm new to this", "I have a basic understanding", "I'm an Expert"]
+        }
+    ];
+
+    const answers = {};
+
+    function selectOption(answer) {
+        const user = auth.currentUser;
+        if (!user) {
+            alert("You must be signed in to complete the quiz.");
+            return;
+        }
+
+        // Store the answer
+        answers[`question${currentQuestion + 1}`] = answer;
+
+        // Move to the next question or save the answers
+        currentQuestion++;
+        if (currentQuestion < questions.length) {
+            loadQuestion();
+        } else {
+            saveAnswers(user.uid);
+        }
+    }
+
+    function loadQuestion() {
+        const question = questions[currentQuestion];
+        document.getElementById("question").textContent = question.text;
+        document.getElementById("progressBar").style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+
+        const optionsContainer = document.getElementById("options");
+        optionsContainer.innerHTML = "";
+        question.options.forEach(option => {
+            const button = document.createElement("button");
+            button.textContent = option;
+            button.onclick = () => selectOption(option);
+            optionsContainer.appendChild(button);
+        });
+    }
+
+    function saveAnswers(userId) {
+        db.collection("users").doc(userId).update({
+            quizAnswers: answers
+        }).then(() => {
+            alert("Quiz completed successfully!");
+            window.location.href = "/"; // Redirect to the landing page
+        }).catch((error) => {
+            console.error("Error saving quiz answers:", error);
+            alert("Failed to save quiz answers. Please try again.");
+        });
+    }
+</script>
+
+</body>
+</html>
