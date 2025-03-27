@@ -46,7 +46,9 @@ import xml.etree.ElementTree as ET
 import json
 from typing import Union
 import re
+from dotenv import load_dotenv
 
+load_dotenv()
 
 
 from google import genai
@@ -80,12 +82,12 @@ llama = Ollama(model="llama3.1:8b")
 ########## End #################
 
 # Indian Stock Market API base configuration
-INDIAN_API_KEY = os.environ.get('FINANCE_KEY', 'demo_key')  # Default to demo_key if not set
+INDIAN_API_KEY = os.environ.get('FINANCE_KEY')  # Default to the provided key if not set
 INDIAN_API_BASE_URL = "https://stock.indianapi.in"
 
+# Google Gemini API configuration
 GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', '')
-if GOOGLE_API_KEY:
-    client = genai.Client(api_key=GOOGLE_API_KEY)
+client = genai.Client(api_key=GOOGLE_API_KEY)
 
 # Define API endpoints and their parameters
 API_ENDPOINTS = {
@@ -254,6 +256,7 @@ def orchestrator(query):
     """
     
     try:
+        # Check if the Gemini API key is set
         # Create content for the orchestrator
         contents = [
             types.Content(
@@ -274,24 +277,35 @@ def orchestrator(query):
         )
         
         # Generate content
-        response = client.models.generate_content(
-            model="gemini-1.5-flash",
-            contents=contents,
-            config=generate_content_config,
-        )
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=contents,
+                config=generate_content_config,
+            )
+            
+            # Parse the response
+            decision_text = response.text
+            # Extract JSON from the response
+            if "```json" in decision_text:
+                json_str = decision_text.split("```json")[1].split("```")[0].strip()
+            elif "```" in decision_text:
+                json_str = decision_text.split("```")[1].strip()
+            else:
+                json_str = decision_text.strip()
+            
+            try:
+                decision = json.loads(json_str)
+                return decision
+            except json.JSONDecodeError as json_error:
+                print(f"Error parsing JSON from orchestrator: {json_error}")
+                print(f"Raw response: {decision_text}")
+                return {"needs_api": False}
         
-        # Parse the response
-        decision_text = response.text
-        # Extract JSON from the response
-        if "```json" in decision_text:
-            json_str = decision_text.split("```json")[1].split("```")[0].strip()
-        elif "```" in decision_text:
-            json_str = decision_text.split("```")[1].strip()
-        else:
-            json_str = decision_text.strip()
-        
-        decision = json.loads(json_str)
-        return decision
+        except Exception as model_error:
+            print(f"Error in orchestrator model call: {model_error}")
+            return {"needs_api": False}
+    
     except Exception as e:
         print(f"Error in orchestrator: {e}")
         return {"needs_api": False}
@@ -309,6 +323,8 @@ def get_gemini_response(user_query, conversation_history=""):
     """
     
     try:
+        # Check if the Gemini API key is set
+            
         # First, use the orchestrator to determine if we need to call an API
         decision = orchestrator(user_query)
         
@@ -319,8 +335,14 @@ def get_gemini_response(user_query, conversation_history=""):
             params = decision.get("params", {})
             
             if function_name in API_ENDPOINTS:
-                api_result = call_api_by_name(function_name, **params)
-                api_context = f"\nHere is the real-time market data from the Indian Stock Market API:\n{json.dumps(api_result, indent=2)}\n\nPlease use this data to provide an informative response to the user's query."
+                try:
+                    api_result = call_api_by_name(function_name, **params)
+                    if "error" in api_result:
+                        api_context = f"\nI attempted to fetch market data but encountered an error: {api_result['error']}"
+                    else:
+                        api_context = f"\nHere is the real-time market data from the Indian Stock Market API:\n{json.dumps(api_result, indent=2)}\n\nPlease use this data to provide an informative response to the user's query."
+                except Exception as api_error:
+                    api_context = f"\nI attempted to fetch market data but encountered an error: {str(api_error)}"
         
         # Prepare the user query with API context if available
         query_with_context = user_query
@@ -364,16 +386,33 @@ def get_gemini_response(user_query, conversation_history=""):
         )
         
         # Generate the response
-        response = client.models.generate_content(
-            model="gemini-1.5-flash",
-            contents=contents,
-            config=generate_content_config,
-        )
-        
-        return response.text
+        try:
+            response = client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=contents,
+                config=generate_content_config,
+            )
+            return response.text
+        except Exception as model_error:
+            print(f"Error generating content: {model_error}")
+            # Check for specific error types
+            error_message = str(model_error).lower()
+            if "rate limit" in error_message:
+                return "I'm sorry, we've hit the rate limit for our AI service. Please try again in a moment."
+            elif "quota" in error_message:
+                return "I'm sorry, we've exceeded our quota for the AI service. Please try again later."
+            elif "permission" in error_message or "credential" in error_message:
+                return "I'm sorry, there's an authentication issue with our AI service. Please contact support."
+            else:
+                return "I apologize, but I encountered an error while generating a response. Please try again later."
+                
     except Exception as e:
         print(f"Error in Gemini response: {e}")
-        return "I apologize, but I encountered an error while processing your request. Please try again later."
+        # Fallback to Llama if available
+        try:
+            return get_llama_response(user_query)
+        except:
+            return "I apologize, but I encountered an error while processing your request. Please try again later."
 
 # Fallback to Llama if Gemini is not available
 def get_llama_response(query):
@@ -418,7 +457,7 @@ def ask():
             role = "User" if i % 2 == 0 else "Assistant"
             conversation_history += f"{role}: {entry}\n"
     
-    
+    # Call get_gemini_response function with the query and conversation history
     response = get_gemini_response(query, conversation_history)
     
     # Update session with new conversation entries
