@@ -226,13 +226,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FinBuddy Chatbot</title>
+    <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=arrow_back_ios_new" /> -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=ios_share" />
+    
     <style>
-        /* General styling */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
+    font-family: "Poppins", sans-serif;
 }
 
 /* Main container layout */
@@ -264,11 +268,17 @@
     font-size: 16px;
     color: #333;
     cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    font-size: 20px;
 }
 
-.icons span {
-    font-size: 18px;
-    margin-left: 10px;
+.icons svg {
+    font-size: 35px;
+    margin-left: 15px;
     cursor: pointer;
 }
 
@@ -281,14 +291,11 @@
     justify-content: space-between;
 }
 
-/* Header Styling */
 .header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: start;
     padding: 15px 30px;
-    background: #ffffff;
-    border-bottom: 1px solid #ccc;
 }
 
 .header h1 {
@@ -309,11 +316,23 @@
     font-size: 14px;
     color: #4CAF50;
 }
+.actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 15px;
+}
 
 .actions span {
     margin-left: 15px;
-    font-size: 16px;
+    font-size: 17px;
     cursor: pointer;
+    font-weight: 600;
+    margin-right: 15px;
+}
+.actions span span {
+    margin-left: 5px;
 }
 
 /* Chat area */
@@ -369,6 +388,15 @@
     cursor: pointer;
     transition: 0.3s;
 }
+.ios_share {
+    font-size: 100px;
+}
+.logodiv {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+}
 
 .voice-btn:hover {
     background: #45a049;
@@ -398,10 +426,10 @@
     
         <div class="sidebar">
             <div class="sidebar-header">
-                <button class="back-btn">&larr; History</button>
+                <button class="back-btn"><svg xmlns="http://www.w3.org/2000/svg" height="30px" viewBox="0 -960 960 960" width="30px" fill="#1fac1f1f"><path d="M640-80 240-480l400-400 71 71-329 329 329 329-71 71Z"/></svg>History</button>
                 <div class="icons">
-                    <span>🔍</span>
-                    <span>💬</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" height="27px" viewBox="0 -960 960 960" width="27px" fill="#1f1f1f"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" height="27px" viewBox="0 -960 960 960" width="27px" fill="#1f1f1f"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
                 </div>
             </div>
         </div>
@@ -411,11 +439,17 @@
             
             <!-- Header -->
             <div class="header">
-                <img src="../static/finallogo.png" alt="" style: width="150px";>
-                <span class="status">🟢 online</span>
+                <div class="logodiv">
+                    <img src="../static/finallogo.png" alt="" style: width="150px";>
+                    <span class="status">🟢 online</span>
+                </div>
                 <div class="actions">
-                    <span>🔗 Share</span>
-                    <span>👤</span>
+                    <span>Home</span>
+                    <span>Dashboard</span>
+                    <span>Share<span class="material-symbols-outlined">
+                        ios_share
+                        </span></span>
+                        <svg xmlns="http://www.w3.org/2000/svg" height="27px" viewBox="0 -960 960 960" width="27px" fill="#1f1f1f"><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg>
                 </div>
             </div>
 
