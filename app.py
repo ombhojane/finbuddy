@@ -397,6 +397,10 @@ def get_llama_response(query):
 def chatbot():
     return render_template('chatbot.html', active_page='chatbot')
 
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html', active_page='dashboard')
+
 @app.route('/ask', methods=['POST'])
 def ask():
     """
