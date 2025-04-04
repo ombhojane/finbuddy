@@ -9,7 +9,6 @@ from PyPDF2 import PdfReader
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import FAISS
 from langchain.prompts import ChatPromptTemplate
-from langchain_ollama.llms import OllamaLLM
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.chains import RetrievalQA
@@ -35,7 +34,6 @@ import json
 import pandas as pd
 #testing
 from langchain.agents import initialize_agent, Tool, AgentType
-from langchain_community.llms import Ollama
 from langchain.agents.agent import AgentOutputParser
 from langchain.schema import AgentAction, AgentFinish
 import wikipedia
@@ -47,6 +45,7 @@ import json
 from typing import Union
 import re
 from dotenv import load_dotenv
+from groq import Groq
 
 load_dotenv()
 
@@ -77,8 +76,8 @@ db = SQLAlchemy(app)
 nlp = spacy.load("en_core_web_sm")
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-################ Testing waala #########
-llama = Ollama(model="llama3.1:8b")
+################ Initialize Groq client #########
+groq_client = Groq(api_key="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")
 ########## End #################
 
 # Indian Stock Market API base configuration
@@ -408,27 +407,33 @@ def get_gemini_response(user_query, conversation_history=""):
                 
     except Exception as e:
         print(f"Error in Gemini response: {e}")
-        # Fallback to Llama if available
+        # Fallback to Gemma if available
         try:
-            return get_llama_response(user_query)
+            return get_gemma_response_fallback(user_query)
         except:
             return "I apologize, but I encountered an error while processing your request. Please try again later."
 
-# Fallback to Llama if Gemini is not available
-def get_llama_response(query):
-    """Fallback to use Llama model when Gemini is not available"""
+# Fallback to Gemma if Gemini is not available
+def get_gemma_response_fallback(query):
+    """Fallback to use Groq's Gemma model when Gemini is not available"""
     try:
-        template = """
+        system_prompt = """
         You are Flaix, a helpful and knowledgeable financial assistant designed specifically for Indian users. 
         Your purpose is to improve financial literacy and provide guidance on investments in the Indian market.
-
-        Please respond to the following query:
-        {query}
         """
-        prompt = ChatPromptTemplate.from_template(template)
-        chain = prompt | llama
-        response = chain.invoke({"query": query})
-        return response
+        
+        completion = groq_client.chat.completions.create(
+            model="gemma2-9b-it",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": query}
+            ],
+            temperature=0.7,
+            max_tokens=1024,
+            top_p=1,
+        )
+        
+        return completion.choices[0].message.content
     except Exception as e:
         return f"I apologize, but I encountered an error: {str(e)}"
 
@@ -568,8 +573,29 @@ Question 1:
 """
 
 question_prompt = ChatPromptTemplate.from_template(question_template)
-model = OllamaLLM(model="llama3.1:8b")
-question_chain = question_prompt | model
+
+# Function to generate questions with Groq
+def generate_questions_with_groq(template, input_data):
+    system_prompt = "You are a helpful AI assistant that generates quiz questions from text."
+    formatted_prompt = template.format(**input_data)
+    
+    completion = groq_client.chat.completions.create(
+        model="gemma2-9b-it",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": formatted_prompt}
+        ],
+        temperature=0.7,
+        max_tokens=2048,
+        top_p=1,
+    )
+    
+    return completion.choices[0].message.content
+
+# Use this function instead of directly piping through model
+def question_chain_invoke(data):
+    return generate_questions_with_groq(question_template, data)
+
 text_splitter = CharacterTextSplitter(separator="/n", chunk_size=1000, chunk_overlap=200)
 embeddings = HuggingFaceEmbeddings()
 
@@ -737,19 +763,38 @@ def process_pdf(file):
 def test_generate():
     if request.method == "POST":
         # Handle text input
-        inputText = request.form.get("itext", "")
+        inputText = request.form.get("itext", "").strip()
         testType = request.form.get("test_type")
         noOfQues = request.form.get("noq")
         processing_method = request.form.get("processing_method")  # Get processing method
 
         # Handle file upload
         pdf_file = request.files.get("pdf_file")
-        if pdf_file:
-            filename = secure_filename(pdf_file.filename)
-            pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            pdf_file.save(pdf_path)
-            inputText = extract_text_from_pdf(pdf_path)
+        if pdf_file and pdf_file.filename:
+            try:
+                filename = secure_filename(pdf_file.filename)
+                pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                pdf_file.save(pdf_path)
+                inputText = extract_text_from_pdf(pdf_path)
+                print(f"Extracted {len(inputText)} characters from PDF")
+            except Exception as e:
+                print(f"Error processing PDF: {str(e)}")
+                flash(f"Error processing PDF: {str(e)}", "danger")
+                return redirect(url_for('Qna'))
+        
+        # Validate input
+        if not inputText or len(inputText.strip()) < 20:
+            flash("Please provide more text content (at least 20 characters) to generate flashcards.", "warning")
+            return redirect(url_for('Qna'))
 
+        # Make sure noOfQues is valid
+        try:
+            noOfQues = int(noOfQues)
+            if noOfQues < 1:
+                noOfQues = 5  # Default to 5 questions if invalid
+        except (ValueError, TypeError):
+            noOfQues = 5  # Default to 5 questions if parsing fails
+            
         # Filter the input text
         cleaned_text = clean_text(inputText)
         filtered_text = filter_unwanted_text(cleaned_text)
@@ -762,9 +807,11 @@ def test_generate():
                 return render_template('objective.html', mcqs=mcqs)
 
             elif processing_method == "llm":
-                # Here, include num_questions in the prompt input
-                prompt_input = question_template.format(num_questions=noOfQues, input_text=final_filtered_text)
-                response = question_chain.invoke({"input_text": final_filtered_text, "num_questions": noOfQues})
+                # Use the new Groq-based question generator
+                response = question_chain_invoke({
+                    "num_questions": noOfQues, 
+                    "input_text": final_filtered_text
+                })
                 mcq_text = response
                 cleaned_mcq_text = remove_special_characters(mcq_text)
 
@@ -779,36 +826,56 @@ def test_generate():
                 return render_template('subjective.html', cresults=testgenerate)
             
             elif processing_method == "llm":
-                # Generate Q&A using Llama 3.1
-                template = """
-                You are an AI assistant designed to generate educational questions and answers based on the provided content. Your task is to create relevant and insightful questions that test the understanding of the text, followed by accurate and concise answers.
+                # Determine source type
+                source_type = "PDF" if pdf_file else "Text Input"
+                content_length = len(final_filtered_text) if final_filtered_text else 0
+                
+                # If no content, show error
+                if not final_filtered_text or content_length < 10:
+                    flash('Please provide more text content to generate flashcards.', 'warning')
+                    return redirect(url_for('Qna'))
+                
+                # Generate Q&A using Groq's Gemma model
+                system_prompt = "You are an AI assistant designed to generate educational flashcards based on the provided content."
+                prompt_content = f"""
+                You are an AI assistant designed to generate educational flashcards based on the provided content. Your task is to create relevant and insightful questions that test the understanding of the text, followed by accurate and concise answers.
 
                 Content: 
-                {question}
+                {final_filtered_text}
 
-                Now, generate the following:
-                1. A set of well-structured questions that directly relate to the key points in the content.
-                2. For each question, provide a clear and accurate answer.
+                Now, generate {noOfQues} flashcards following these guidelines:
+                1. Each flashcard should have a question that relates to a key point in the content
+                2. Each answer should be concise, informative, and directly address the question
+                3. Use clear, straightforward language
+                4. Make sure questions cover different aspects of the content
 
-                Format:
-                Question 1: [Your question here]
-                Answer 1: 
-                [Your answer here]
+                Format each flashcard exactly like this:
+                Question X: [Your question here]
+                Answer X: [Your answer here]
 
-                Question 2: [Your question here]
-                Answer 2: 
-                [Your answer here]
-
-                Please ensure the questions cover different aspects of the content, and the answers are informative and to the point.
+                Where X is the flashcard number (1, 2, 3, etc.)
                 """
-
-                prompt = ChatPromptTemplate.from_template(template)
-                model = OllamaLLM(model="llama3.1:8b")
-                chain = prompt | model
-
-                response = chain.invoke({"question": final_filtered_text})
-                qna_text = response 
-                qna_text_cleaned = remove_special_characters(qna_text)
+                
+                try:
+                    completion = groq_client.chat.completions.create(
+                        model="gemma2-9b-it",
+                        messages=[
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": prompt_content}
+                        ],
+                        temperature=0.7,
+                        max_tokens=2048,
+                        top_p=1,
+                    )
+                    
+                    qna_text = completion.choices[0].message.content
+                    
+                    # Don't strip all special characters, just clean up a bit
+                    qna_text_cleaned = qna_text.replace('"', '').replace('"', '')
+                except Exception as e:
+                    print(f"Error calling Groq API: {str(e)}")
+                    flash(f"Error generating flashcards: {str(e)}", "danger")
+                    return redirect(url_for('Qna'))
 
                 # Prepare Q&A data for rendering
                 qna_items = []
@@ -824,21 +891,126 @@ def test_generate():
                     elif line.startswith("Answer") and current_question:
                         current_question['answer'] = line
 
+                # Debug prints
+                print(f"Input text length: {len(inputText)}")
+                print(f"Final filtered text length: {len(final_filtered_text)}")
+                print(f"Number of QnA items: {len(qna_items)}")
+                print(f"Content source: {source_type}")
+                print(f"Content length: {content_length}")
+
+                # Check for empty response and retry if needed
+                if not qna_items:
+                    print("No QnA items found in response, retrying with simpler prompt...")
+                    # Simplified prompt for retry
+                    prompt_content = f"""
+                    Based on this content: 
+                    {final_filtered_text}
+
+                    Generate {noOfQues} simple question and answer pairs in this exact format:
+                    Question 1: [Question]
+                    Answer 1: [Answer]
+                    Question 2: [Question]
+                    Answer 2: [Answer]
+                    """
+                    
+                    # Retry with simpler prompt
+                    try:
+                        completion = groq_client.chat.completions.create(
+                            model="gemma2-9b-it",
+                            messages=[
+                                {"role": "system", "content": "Generate simple question-answer pairs."},
+                                {"role": "user", "content": prompt_content}
+                            ],
+                            temperature=0.7,
+                            max_tokens=2048,
+                            top_p=1,
+                        )
+                        
+                        qna_text = completion.choices[0].message.content
+                        qna_text_cleaned = qna_text.replace('"', '').replace('"', '')
+                    except Exception as e:
+                        print(f"Error in retry attempt: {str(e)}")
+                        # Create a default item instead of showing an error
+                        summary = final_filtered_text[:200] + "..." if len(final_filtered_text) > 200 else final_filtered_text
+                        qna_items = [
+                            {
+                                'type': 'qa',
+                                'question': 'Question 1: What is the main topic of this text?',
+                                'answer': f'Answer 1: The text appears to discuss {summary}'
+                            }
+                        ]
+                        return render_template('qna_template.html', 
+                                             qna_items=qna_items, 
+                                             source_type=source_type,
+                                             content_length=content_length)
+                    
+                    # Process the response again
+                    qna_lines = qna_text_cleaned.split('\n')
+                    for line in qna_lines:
+                        line = line.strip()
+                        if line.startswith("Question"):
+                            current_question = {'type': 'qa', 'question': line, 'answer': None}
+                            qna_items.append(current_question)
+                        elif line.startswith("Answer") and current_question:
+                            current_question['answer'] = line
+                    
+                    print(f"Retry resulted in {len(qna_items)} QnA items")
+                    
+                    # If still no items, create a default set
+                    if not qna_items:
+                        print("Still no QnA items, creating default set")
+                        # Create at least one item to prevent empty display
+                        summary = final_filtered_text[:200] + "..." if len(final_filtered_text) > 200 else final_filtered_text
+                        qna_items = [
+                            {
+                                'type': 'qa',
+                                'question': 'Question 1: What is the main topic of this text?',
+                                'answer': f'Answer 1: The text appears to discuss {summary}'
+                            }
+                        ]
+
                 # Render HTML template with Q&A data
-                return render_template('qna_template.html', qna_items=qna_items)
+                return render_template('qna_template.html', 
+                                      qna_items=qna_items, 
+                                      source_type=source_type,
+                                      content_length=content_length)
         else:
             flash('Error Occurred!')
             return redirect(url_for('Qna'))
 
 # Function to generate a paragraph
 def generate_paragraph(topic):
-    paragraph_chain = generation_prompt | model
-    return paragraph_chain.invoke({"topic": topic})
+    system_prompt = "Generate a paragraph based on the given topic."
+    
+    completion = groq_client.chat.completions.create(
+        model="gemma2-9b-it",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"Generate a paragraph based on this topic: {topic}"}
+        ],
+        temperature=0.7,
+        max_tokens=1024,
+        top_p=1,
+    )
+    
+    return completion.choices[0].message.content
 
 def generate_topic():#essay
-    """Generate a writing topic using Ollama"""
-    topic_chain = topic_prompt | model
-    return topic_chain.invoke({}).strip()
+    """Generate a writing topic using Groq"""
+    system_prompt = "Generate an interesting writing topic that would make for a good 250-word essay."
+    
+    completion = groq_client.chat.completions.create(
+        model="gemma2-9b-it",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": "Generate an interesting writing topic that would make for a good 250-word essay. The topic should be specific enough to be focused but broad enough to allow for development. Return only the topic without any additional text or explanation."}
+        ],
+        temperature=0.7,
+        max_tokens=100,
+        top_p=1,
+    )
+    
+    return completion.choices[0].message.content.strip()
 
 @app.route('/get_topic', methods=['GET'])
 def get_topic():
@@ -861,23 +1033,64 @@ def evaluate_accuracyr(generated_paragraph, transcribed_text):
     # Convert accuracy to 1-5 scale
     score = round((accuracy / 100) * 5)
     
-    # Generate feedback using the template
-    feedback_chain = feedback_prompt | model
-    feedback = feedback_chain.invoke({
-        "original_paragraph": generated_paragraph,
-        "transcribed_text": transcribed_text,
-        "score": score
-    })
+    # Generate feedback using Groq
+    system_prompt = "You are evaluating the accuracy of a transcription compared to an original paragraph."
+    
+    completion = groq_client.chat.completions.create(
+        model="gemma2-9b-it",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"""
+            Evaluate the following transcription accuracy:
+            Original Paragraph: {generated_paragraph}
+            Transcribed Text: {transcribed_text}
+            Score: {score}/5
+            
+            Provide brief feedback about the accuracy of the transcription and pronunciation.
+            """}
+        ],
+        temperature=0.7,
+        max_tokens=512,
+        top_p=1,
+    )
+    
+    feedback = completion.choices[0].message.content
     
     return score, feedback
 
 def evaluate_essay(topic, essay):
     """Evaluate the essay and return score and feedback"""
-    evaluation_chain = evaluation_prompt | model
-    response = evaluation_chain.invoke({
-        "topic": topic,
-        "essay": essay
-    })
+    system_prompt = "You are evaluating essays for clarity, organization, and content."
+    
+    completion = groq_client.chat.completions.create(
+        model="gemma2-9b-it",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"""
+            Evaluate the following 250-word essay:
+            
+            Topic: {topic}
+            Essay: {essay}
+            
+            Provide a rating on a scale of 1-5 (where 5 is excellent) based on the following criteria:
+            - Relevance to the topic
+            - Organization and structure
+            - Development of ideas
+            - Language usage and clarity
+            - Overall quality
+            
+            First provide the numerical score as an integer between 1 and 5, then provide a brief constructive feedback explaining the rating.
+            Format your response exactly as:
+            SCORE: [number]
+            FEEDBACK: [your feedback]
+            """}
+        ],
+        temperature=0.7,
+        max_tokens=1024,
+        top_p=1,
+    )
+    
+    response = completion.choices[0].message.content
     
     try:
         lines = response.split('\n')
@@ -989,8 +1202,20 @@ def next_task():
     })
 
 def generate_Lparagraph(topic):
-    paragraph_chain = generation_Lprompt | model
-    return paragraph_chain.invoke({"topic": topic})
+    system_prompt = "Generate a single line sentence based on this topic."
+    
+    completion = groq_client.chat.completions.create(
+        model="gemma2-9b-it",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"Generate a single line sentence based on this topic: {topic}"}
+        ],
+        temperature=0.7,
+        max_tokens=256,
+        top_p=1,
+    )
+    
+    return completion.choices[0].message.content
 
 def evaluate_Laccuracy(generated_paragraph, transcribed_text):
     generated_words = generated_paragraph.split()
@@ -1001,12 +1226,27 @@ def evaluate_Laccuracy(generated_paragraph, transcribed_text):
     accuracy = (correct_words / total_words) * 100
     score = round((accuracy / 100) * 5)
     
-    feedback_chain = feedback_Lprompt | model
-    feedback = feedback_chain.invoke({
-        "original_paragraph": generated_paragraph,
-        "transcribed_text": transcribed_text,
-        "score": score
-    })
+    system_prompt = "You are evaluating the accuracy of a transcription compared to an original paragraph."
+    
+    completion = groq_client.chat.completions.create(
+        model="gemma2-9b-it",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"""
+            Evaluate the following transcription accuracy:
+            Original Paragraph: {generated_paragraph}
+            Transcribed Text: {transcribed_text}
+            Score: {score}/5
+            
+            Provide brief feedback about the accuracy of the transcription and pronunciation.
+            """}
+        ],
+        temperature=0.7,
+        max_tokens=512,
+        top_p=1,
+    )
+    
+    feedback = completion.choices[0].message.content
     
     return score, feedback
 
@@ -1055,7 +1295,27 @@ def load_knowledge_base(pdf_path):
     documents = loader.load()
     text_chunks = text_splitter.split_documents(documents)
     knowledge_base = FAISS.from_documents(text_chunks, embeddings)
-    return RetrievalQA.from_chain_type(model, retriever=knowledge_base.as_retriever())
+    
+    def process_query_with_groq(query):
+        system_prompt = "You are a helpful assistant answering questions based on provided documents."
+        retriever = knowledge_base.as_retriever()
+        docs = retriever.get_relevant_documents(query)
+        context = "\n\n".join([doc.page_content for doc in docs])
+        
+        completion = groq_client.chat.completions.create(
+            model="gemma2-9b-it",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Based on the following context, please answer the question: {query}\n\nContext: {context}"}
+            ],
+            temperature=0.7,
+            max_tokens=1024,
+            top_p=1,
+        )
+        
+        return {"result": completion.choices[0].message.content}
+    
+    return type('DummyQA', (), {'invoke': process_query_with_groq})()
 
 
 
@@ -2021,19 +2281,71 @@ Question: {{input}}
 Thought:"""
 
 # Initialize the agent
-agent = initialize_agent(
-    tools,
-    llama,
-    agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    verbose=True,
-    agent_kwargs={
-        "prefix": CUSTOM_PROMPT,
-        "max_iterations": 3,
-        "early_stopping_method": "generate",
-
-    },
-    handle_parsing_errors=True
-)
+def process_research_with_groq(query):
+    """Process research query using Groq's Gemma model instead of Agent framework"""
+    system_prompt = f"""You are a helpful research assistant that finds information using available tools.
+    
+    Available tools:
+    
+    {tool_descriptions}
+    
+    Based on the user's query, decide which tool would be most appropriate and provide a helpful answer.
+    """
+    
+    # First, determine which tool to use
+    tool_selection_prompt = f"For the query: '{query}', which of these tools would be most appropriate to use: Wikipedia, DuckDuckGo, BasicMath, ArXiv, or PubMed? Answer with just the tool name."
+    
+    completion = groq_client.chat.completions.create(
+        model="gemma2-9b-it",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": tool_selection_prompt}
+        ],
+        temperature=0.2,
+        max_tokens=50,
+        top_p=1,
+    )
+    
+    tool_name = completion.choices[0].message.content.strip()
+    
+    # Map the tool name to the actual function
+    tool_map = {
+        "Wikipedia": safe_wikipedia_search,
+        "DuckDuckGo": safe_duckduckgo_search,
+        "BasicMath": safe_math_eval,
+        "ArXiv": search_arxiv,
+        "PubMed": search_pubmed
+    }
+    
+    # Default to DuckDuckGo if no valid tool is selected
+    tool_function = tool_map.get(tool_name, safe_duckduckgo_search)
+    
+    # Execute the tool
+    observation = tool_function(query)
+    
+    # Generate the final answer
+    final_prompt = f"""
+    Question: {query}
+    
+    I searched for information using {tool_name} and found:
+    {observation}
+    
+    Based on this information, provide a comprehensive, accurate answer to the original question.
+    Include relevant details and organize your response clearly.
+    """
+    
+    completion = groq_client.chat.completions.create(
+        model="gemma2-9b-it",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": final_prompt}
+        ],
+        temperature=0.7,
+        max_tokens=1500,
+        top_p=1,
+    )
+    
+    return completion.choices[0].message.content
 
 @app.route('/research')
 def research():
@@ -2046,7 +2358,7 @@ def search():
         if not user_input:
             return jsonify({'error': 'No query provided'}), 400
         
-        result = agent.run(user_input)
+        result = process_research_with_groq(user_input)
         return jsonify({'result': result})
     except Exception as e:
         return jsonify({'error': str(e)}), 500

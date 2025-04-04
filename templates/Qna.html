@@ -31,6 +31,36 @@
   user-select: none;
   pointer-events: none;
 }
+
+/* File name display */
+#fileNameDisplay {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #666;
+}
+
+/* Loading spinner */
+.spinner-container {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid rgb(14, 41, 163);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 </style>
 <section class="content">
     <div class="left-content" style="display: block; padding: 40px;">
@@ -41,47 +71,56 @@
                     <div class="card-body align-items-center d-flex justify-content-center">     
                         <div class="row mb-4">
                             <div class="col-lg-12 col-sm-16">
-                                <h3 class="h3 text-center">GENERATE QUESTIONS & ANSWERS</h3>  
+                                <h3 class="h3 text-center">GENERATE FLASHCARDS WITH GEMMA</h3>  
                             </div>
                             
                             <div class="card-body">
-                                <form method="POST" action="test_generate" enctype="multipart/form-data">
+                                <!-- Flash messages -->
+                                {% with messages = get_flashed_messages(with_categories=true) %}
+                                    {% if messages %}
+                                        {% for category, message in messages %}
+                                            <div class="alert alert-{{ category if category not in ['warning', 'danger', 'success'] else category }}">
+                                                {{ message }}
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endwith %}
+                                <form id="flashcardForm" method="POST" action="test_generate" enctype="multipart/form-data">
                                     <div class="mb-4">
                                         <div class="form-group">
                                             <label class="h6" for="exampleFormControlTextarea1">Input Text</label>
-                                            <textarea name="itext" class="form-control" placeholder="Input Text? (Can Contain Any Large FINANCIAL ABSTRACT which can be summarized in form of Q&A)" rows="1"></textarea>
+                                            <textarea name="itext" class="form-control" placeholder="Input Text? (Can Contain Any Large FINANCIAL ABSTRACT which can be summarized in form of Q&A)" rows="6"></textarea>
                                         </div>
                                         <div class="form-group">
                                             <label class="h6" for="pdfUpload">Upload PDF (optional)</label><br>
                                             <label for="pdfUpload" class="custom-file-upload">
                                                 Choose File
                                             </label>
-                                            <input type="file" name="pdf_file" class="form-control-file" id="pdfUpload" accept=".pdf">
+                                            <input type="file" name="pdf_file" class="form-control-file" id="pdfUpload" accept=".pdf" onchange="displayFileName()">
+                                            <div id="fileNameDisplay"></div>
                                         </div>    
                                         <div class="form-group">
-                                            <label class="my-1 mr-2" for="inlineFormCustomSelectPref">Choose Question Type</label>
+                                            <label class="my-1 mr-2" for="inlineFormCustomSelectPref">Choose Flashcard Type</label>
                                             <select class="custom-select my-1 mr-sm-2" id="inlineFormCustomSelectPref" name="test_type" required>
-                                                <option value="objective">Objective</option>
-                                                <option value="subjective">Subjective</option>
+                                                <option value="subjective">Question & Answer</option>
+                                                <option value="objective">Multiple Choice</option>
                                             </select>
                                         </div>
-                                        <div class="form-group" id="processingMethod">
-                                            <label class="my-1 mr-2">Choose Processing Method</label>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="processing_method" id="processingMethodNLP" value="nlp" required>
-                                                <label class="form-check-label" for="processingMethodNLP">NLP (Fast but may produce inaccurate results)</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="processing_method" id="processingMethodLLM" value="llm" required>
-                                                <label class="form-check-label" for="processingMethodLLM">LLM (May take time but accurate)</label>
-                                            </div>
-                                        </div>
+                                        
+                                        <!-- Hidden field for processing method - always using LLM (Gemma) -->
+                                        <input type="hidden" name="processing_method" value="llm">
+                                        
                                         <div class="form-group">
-                                            <label class="h6" for="exampleFormControlTextarea1">No of Questions</label>
-                                            <input type="number" name="noq" class="form-control" placeholder="No. of Questions" min="1" required>
+                                            <label class="h6" for="exampleFormControlTextarea1">Number of Flashcards</label>
+                                            <input type="number" name="noq" class="form-control" placeholder="Number of Flashcards" min="1" value="5" required>
                                         </div>  
 
-                                        <input type="submit" class="btn btn-dark btn-block" value="Generate" style="background-color: rgb(14, 41, 163);">
+                                        <input type="submit" class="btn btn-dark btn-block" value="Generate Flashcards" style="background-color: rgb(14, 41, 163);">
+                                        
+                                        <div class="spinner-container" id="loadingSpinner">
+                                            <div class="spinner"></div>
+                                            <p>Generating flashcards with Gemma... This may take a moment.</p>
+                                        </div>
                                     </div>
                                 </form>
                             </div>
@@ -112,6 +151,23 @@
 
             // Show processing method initially
             $('#processingMethod').show();
+        });
+
+        // Show filename when file is selected
+        function displayFileName() {
+            const fileInput = document.getElementById('pdfUpload');
+            const fileNameDisplay = document.getElementById('fileNameDisplay');
+            
+            if (fileInput.files.length > 0) {
+                fileNameDisplay.textContent = "Selected file: " + fileInput.files[0].name;
+            } else {
+                fileNameDisplay.textContent = "";
+            }
+        }
+        
+        // Show loading spinner when form is submitted
+        document.getElementById('flashcardForm').addEventListener('submit', function() {
+            document.getElementById('loadingSpinner').style.display = 'flex';
         });
     </script>
 

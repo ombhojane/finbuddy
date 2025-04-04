@@ -1,31 +1,252 @@
 {% extends "base.html" %}
-{% block title %}About - Fitness App{% endblock %}
+{% block title %}Flashcards - FinBuddy{% endblock %}
 {% block content %}
-<section class="content">
+<style>
+    .flashcard-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+    }
     
-    <div class="container">
-        <br>
-            <center><h1>FlashCards</h1></center>
-        {% block body %}
-        <div class="row">
-            {% for item in qna_items %}
-                <div class="col-12 mb-4">
-                    <div class="card border-light shadow-sm">
-                        <div class="card-body">
-                            <!-- <h5 class="card-title">Question {{ loop.index }}</h5> -->
-                            <h5 class="card-title">{{ item.question }}</h5>
-                            {% if item.answer %}
-                                <!-- <h5 class="card-title">Answer</h5> -->
-                                <p class="card-text">{{ item.answer }}</p>
-                            {% endif %}
-                        </div>
-                    </div>
+    .flashcard {
+        position: relative;
+        background-color: white;
+        border-radius: 10px;
+        padding: 25px;
+        padding-bottom: 50px; /* Add space for the button at bottom */
+        margin-bottom: 30px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        border-left: 5px solid rgb(14, 41, 163);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .flashcard:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+    
+    .flashcard-question {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #333;
+        padding-right: 10px;
+    }
+    
+    .flashcard-answer {
+        font-size: 16px;
+        color: #555;
+        padding-top: 15px;
+        padding-bottom: 10px;
+        margin-top: 15px;
+        border-top: 1px solid #ddd;
+        display: none; /* Initially hidden */
+        line-height: 1.5;
+    }
+    
+    .flashcard.active .flashcard-answer {
+        display: block;
+        animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .toggle-answer {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        border: none;
+        background-color: rgb(14, 41, 163);
+        color: white;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .toggle-answer:hover {
+        background-color: rgb(10, 30, 120);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    /* Style for Hide Answer button */
+    .flashcard.active .toggle-answer {
+        background-color: #555;
+    }
+    
+    .flashcard.active .toggle-answer:hover {
+        background-color: #444;
+    }
+    
+    .header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .header h1 {
+        color: rgb(14, 41, 163);
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+    
+    .header p {
+        color: #666;
+        font-size: 16px;
+    }
+    
+    .source-info {
+        margin-bottom: 20px;
+    }
+    
+    .back-btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #666;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+    
+    .back-btn:hover {
+        background-color: #555;
+        text-decoration: none;
+        color: white;
+    }
+    
+    .print-btn {
+        display: block;
+        margin: 20px auto;
+        padding: 10px 20px;
+        background-color: #666;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.2s;
+    }
+    
+    .print-btn:hover {
+        background-color: #555;
+    }
+    
+    /* Print styles */
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        
+        .flashcard-container, .flashcard-container * {
+            visibility: visible;
+        }
+        
+        .back-btn, .print-btn, .toggle-answer, .right-content {
+            display: none !important;
+        }
+        
+        .flashcard {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            box-shadow: none;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+            padding-bottom: 25px;
+        }
+        
+        .flashcard-answer {
+            display: block !important;
+            visibility: visible !important;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 14px;
+        }
+    }
+</style>
+
+<section class="content">
+    <div class="flashcard-container">
+        <div class="header">
+            <h1>Gemma-Generated Flashcards</h1>
+            <p>Click on a card or the "Show Answer" button to reveal answers</p>
+            {% if source_type %}
+                <div class="source-info">
+                    <p>Source: {{ source_type }} ({{ content_length }} characters processed)</p>
                 </div>
-            {% endfor %}
+            {% endif %}
+            <a href="{{ url_for('Qna') }}" class="back-btn">← Generate New Flashcards</a>
         </div>
-        {% endblock %}
+        
+        {% if qna_items and qna_items|length > 0 %}
+            <div class="flashcards">
+                {% for item in qna_items %}
+                    <div class="flashcard" id="card-{{ loop.index }}">
+                        <div class="flashcard-question">{{ item.question }}</div>
+                        {% if item.answer %}
+                            <div class="flashcard-answer" id="answer-{{ loop.index }}">
+                                <strong style="color: rgb(14, 41, 163);">Answer:</strong> 
+                                {{ item.answer|replace('Answer ' ~ loop.index ~ ':', '') }}
+                            </div>
+                        {% endif %}
+                        <button class="toggle-answer" id="button-{{ loop.index }}" onclick="toggleAnswer('card-{{ loop.index }}')">Show Answer</button>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+        {% else %}
+            <div class="alert alert-warning">
+                <h4 class="alert-heading">No flashcards were generated!</h4>
+                <p>We couldn't generate any flashcards from the provided content. This may happen if:</p>
+                <ul>
+                    <li>The text was too short or lacking in content</li>
+                    <li>The model had trouble understanding the content</li>
+                    <li>There was a formatting or processing issue</li>
+                </ul>
+                <p>Please try again with more substantial text or a different source.</p>
+                <a href="{{ url_for('Qna') }}" class="btn btn-primary mt-3">Try Again with Different Text</a>
+            </div>
+        {% endif %}
     </div>
 
-    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <script>
+        function toggleAnswer(cardId) {
+            const card = document.getElementById(cardId);
+            const button = card.querySelector('.toggle-answer');
+            
+            if (card.classList.contains('active')) {
+                card.classList.remove('active');
+                button.textContent = 'Show Answer';
+            } else {
+                card.classList.add('active');
+                button.textContent = 'Hide Answer';
+            }
+        }
+        
+        // Allow clicking anywhere on the card to toggle answer
+        document.querySelectorAll('.flashcard').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Only toggle if not clicking on the button itself or the answer section
+                if (!e.target.classList.contains('toggle-answer') && 
+                    !e.target.classList.contains('flashcard-answer')) {
+                    const button = this.querySelector('.toggle-answer');
+                    button.click();
+                }
+            });
+        });
+    </script>
 </section>
 {% endblock %}
