@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% block title %}{{ module.title }} - FinBuddy{% endblock %}
+{% block content %}
+<style>
+    .module-header {
+        background-color: #f5f7fa;
+        padding: 30px 0;
+        margin-bottom: 30px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .module-title {
+        font-size: 32px;
+        font-weight: 800;
+        color: #111;
+        margin-bottom: 15px;
+    }
+    
+    .module-description {
+        font-size: 17px;
+        color: #555;
+        max-width: 700px;
+        line-height: 1.6;
+        margin-bottom: 0;
+    }
+    
+    .section-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .section-item {
+        background: white;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .section-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .section-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 25px;
+        color: #333;
+        text-decoration: none;
+    }
+    
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .section-number {
+        min-width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #EEF2FF;
+        color: #4F46E5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-right: 15px;
+    }
+    
+    .section-left {
+        display: flex;
+        align-items: center;
+    }
+    
+    .section-status {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #f3f4f6;
+        border: 2px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .section-status.completed {
+        background: #10B981;
+        border-color: #10B981;
+        color: white;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        color: #4B5563;
+        text-decoration: none;
+        font-weight: 500;
+        margin-bottom: 20px;
+    }
+    
+    .back-link:hover {
+        color: #1F2937;
+    }
+    
+    .back-icon {
+        margin-right: 8px;
+    }
+    
+    .progress-overview {
+        background: white;
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .progress-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #111;
+    }
+    
+    .progress-container {
+        height: 8px;
+        background: #f0f0f0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+    
+    .progress-bar {
+        height: 100%;
+        background: #4F46E5;
+        border-radius: 4px;
+    }
+    
+    .progress-stats {
+        display: flex;
+        justify-content: space-between;
+        font-size: 15px;
+        color: #6B7280;
+    }
+</style>
+
+<section class="content">
+    <div class="left-content" style="display: block; padding: 40px;">
+        <div class="module-intro">
+            <a href="{{ url_for('courses') }}" class="back-link">
+                <span class="back-icon">←</span> Back to Courses
+            </a>
+            <h1 class="module-title">{{ module.title }}</h1>
+            <p class="module-description">{{ module.description }}</p>
+        </div>
+        
+        <div class="progress-overview">
+            <h2 class="progress-title">Your Progress</h2>
+            <div class="progress-container">
+                <div id="module-progress-bar" class="progress-bar" style="width: 0%"></div>
+            </div>
+            <div class="progress-stats">
+                <span id="completed-count">0 of {{ sections|length }} sections completed</span>
+                <span id="progress-percent">0% complete</span>
+            </div>
+        </div>
+        
+        <ul class="section-list">
+            {% for section in sections %}
+            <li class="section-item">
+                <a href="{{ url_for('course_section', section_id=section.id) }}" class="section-link">
+                    <div class="section-left">
+                        <div class="section-number">{{ loop.index }}</div>
+                        <h3 class="section-title">{{ section.title }}</h3>
+                    </div>
+                    <div id="section-status-{{ section.id }}" class="section-status">
+                    </div>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <div class="right-content"><br>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 class="text-primary mb-3">About This Course</h3>
+            <p class="text-muted mb-4">{{ module.description }}</p>
+            
+            <h4 class="mb-2">What You'll Learn</h4>
+            {% if module.id == 1 %}
+            <ul class="list-unstyled">
+                <li><i class="fas fa-check text-success mr-2"></i> Understand what money is and how it works</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Differentiate between various types of income</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Learn to set SMART financial goals</li>
+            </ul>
+            {% elif module.id == 2 %}
+            <ul class="list-unstyled">
+                <li><i class="fas fa-check text-success mr-2"></i> Create effective personal budgets</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Master key saving strategies</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Learn to manage debt responsibly</li>
+            </ul>
+            {% elif module.id == 3 %}
+            <ul class="list-unstyled">
+                <li><i class="fas fa-check text-success mr-2"></i> Understand investment principles</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Learn about different investment vehicles</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Build a diversified investment portfolio</li>
+            </ul>
+            {% endif %}
+            
+            <div class="mt-4">
+                <p class="mb-2"><strong>Course Length:</strong> 3 sections</p>
+                <p><strong>Difficulty:</strong> 
+                    {% if module.id == 1 %}
+                    Beginner
+                    {% elif module.id == 2 %}
+                    Intermediate
+                    {% elif module.id == 3 %}
+                    Advanced
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get completed sections from localStorage
+        let completedSections = JSON.parse(localStorage.getItem('finbuddy_completed_sections')) || [];
+        
+        // Module sections
+        const moduleSections = [
+            {% for section in sections %}
+            {{ section.id }}{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        // Count completed sections in this module
+        const completedCount = moduleSections.filter(id => completedSections.includes(id)).length;
+        const progressPercent = Math.round((completedCount / moduleSections.length) * 100);
+        
+        // Update progress UI
+        document.getElementById('module-progress-bar').style.width = `${progressPercent}%`;
+        document.getElementById('completed-count').textContent = `${completedCount} of ${moduleSections.length} sections completed`;
+        document.getElementById('progress-percent').textContent = `${progressPercent}% complete`;
+        
+        // Update section status indicators
+        moduleSections.forEach(sectionId => {
+            const isCompleted = completedSections.includes(sectionId);
+            const statusElement = document.getElementById(`section-status-${sectionId}`);
+            
+            if (isCompleted) {
+                statusElement.classList.add('completed');
+                statusElement.innerHTML = '✓';
+            }
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+{% block title %}Profile - FinBuddy{% endblock %}
+{% block content %}
+<style>
+    .profile-header {
+        background-color: #f5f7fa;
+        padding: 20px 0;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .profile-info {
+        display: flex;
+        align-items: center;
+    }
+    
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: #4F46E5;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: 600;
+        margin-right: 20px;
+    }
+    
+    .profile-details h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: #111;
+    }
+    
+    .profile-email {
+        color: #6B7280;
+        font-size: 14px;
+    }
+    
+    .profile-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #4F46E5;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        color: #6B7280;
+        font-size: 14px;
+    }
+    
+    .section-title {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: #111;
+    }
+    
+    .progress-list {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .progress-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .progress-item:last-child {
+        border-bottom: none;
+    }
+    
+    .course-info {
+        display: flex;
+        align-items: center;
+    }
+    
+    .course-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background-color: #EEF2FF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        color: #4F46E5;
+        font-size: 18px;
+    }
+    
+    .course-details h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 5px 0;
+        color: #111;
+    }
+    
+    .course-details p {
+        font-size: 14px;
+        color: #6B7280;
+        margin: 0;
+    }
+    
+    .course-progress {
+        display: flex;
+        align-items: center;
+    }
+    
+    .progress-container {
+        width: 100px;
+        height: 8px;
+        background: #f0f0f0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-right: 10px;
+    }
+    
+    .progress-bar {
+        height: 100%;
+        background: #4F46E5;
+        border-radius: 4px;
+    }
+    
+    .progress-percentage {
+        font-size: 14px;
+        font-weight: 600;
+        color: #4F46E5;
+        white-space: nowrap;
+    }
+    
+    .action-button {
+        background-color: #4F46E5;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+    
+    .action-button:hover {
+        background-color: #3730A3;
+    }
+</style>
+
+<section class="content">
+    <div class="left-content" style="display: block; padding: 40px;">
+        <div class="profile-intro">
+            <div class="profile-info">
+                <div class="profile-avatar">
+                    {% if user.name %}
+                        {{ user.name[0]|upper }}
+                    {% else %}
+                        U
+                    {% endif %}
+                </div>
+                <div class="profile-details">
+                    <h1>{{ user.name|default('User') }}</h1>
+                    <div class="profile-email">{{ user.email|default('user@example.com') }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-stats">
+            <div class="stat-card">
+                <div id="completed-sections" class="stat-value">0</div>
+                <div class="stat-label">Sections Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Available Modules</div>
+            </div>
+            <div class="stat-card">
+                <div id="overall-progress" class="stat-value">0%</div>
+                <div class="stat-label">Overall Progress</div>
+            </div>
+        </div>
+        
+        <h2 class="section-title">Course Progress</h2>
+        
+        <div class="progress-list">
+            <div class="progress-item">
+                <div class="course-info">
+                    <div class="course-icon">📚</div>
+                    <div class="course-details">
+                        <h3>Financial Basics</h3>
+                        <p>3 sections</p>
+                    </div>
+                </div>
+                <div class="course-progress">
+                    <div class="progress-container">
+                        <div id="progress-module-1" class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div id="progress-percent-1" class="progress-percentage">0%</div>
+                </div>
+                <a href="{{ url_for('course_module', module_id=1) }}" class="action-button">Continue</a>
+            </div>
+            
+            <div class="progress-item">
+                <div class="course-info">
+                    <div class="course-icon">📚</div>
+                    <div class="course-details">
+                        <h3>Saving & Budgeting</h3>
+                        <p>3 sections</p>
+                    </div>
+                </div>
+                <div class="course-progress">
+                    <div class="progress-container">
+                        <div id="progress-module-2" class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div id="progress-percent-2" class="progress-percentage">0%</div>
+                </div>
+                <a href="{{ url_for('course_module', module_id=2) }}" class="action-button">Continue</a>
+            </div>
+            
+            <div class="progress-item">
+                <div class="course-info">
+                    <div class="course-icon">📚</div>
+                    <div class="course-details">
+                        <h3>Investment Fundamentals</h3>
+                        <p>3 sections</p>
+                    </div>
+                </div>
+                <div class="course-progress">
+                    <div class="progress-container">
+                        <div id="progress-module-3" class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div id="progress-percent-3" class="progress-percentage">0%</div>
+                </div>
+                <a href="{{ url_for('course_module', module_id=3) }}" class="action-button">Continue</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="right-content"><br>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 class="text-primary mb-3">Your Learning Journey</h3>
+            <p class="text-muted mb-3">Track your progress through our financial literacy courses.</p>
+            
+            <div class="alert alert-info">
+                <div class="d-flex">
+                    <div class="mr-3">
+                        <i class="fas fa-info-circle fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5 class="alert-heading">Progress Tracking</h5>
+                        <p class="mb-0">Your progress is stored locally in your browser. You can continue learning across multiple sessions without losing your progress.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <h5>Next Steps</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check-circle text-success mr-2"></i> Complete all course sections</li>
+                    <li><i class="fas fa-check-circle text-success mr-2"></i> Take assessments to test your knowledge</li>
+                    <li><i class="fas fa-check-circle text-success mr-2"></i> Apply your learning to real-world scenarios</li>
+                </ul>
+                <div class="mt-3">
+                    <a href="{{ url_for('courses') }}" class="btn btn-primary btn-sm">View All Courses</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get completed sections from localStorage
+        let completedSections = JSON.parse(localStorage.getItem('finbuddy_completed_sections')) || [];
+        
+        // Module data structure
+        const moduleData = {
+            1: { total: 3, sections: [1, 2, 3] },
+            2: { total: 3, sections: [4, 5, 6] },
+            3: { total: 3, sections: [7, 8, 9] }
+        };
+        
+        // Calculate total sections and total completed
+        const totalSections = 9; // 3 modules × 3 sections each
+        const totalCompleted = completedSections.length;
+        const overallProgress = Math.round((totalCompleted / totalSections) * 100);
+        
+        // Update overview stats
+        document.getElementById('completed-sections').textContent = totalCompleted;
+        document.getElementById('overall-progress').textContent = overallProgress + '%';
+        
+        // Update progress for each module
+        Object.keys(moduleData).forEach(moduleId => {
+            const module = moduleData[moduleId];
+            const completedCount = module.sections.filter(sectionId => 
+                completedSections.includes(sectionId)
+            ).length;
+            
+            const progressPercent = Math.round((completedCount / module.total) * 100);
+            
+            // Update UI
+            document.getElementById(`progress-module-${moduleId}`).style.width = `${progressPercent}%`;
+            document.getElementById(`progress-percent-${moduleId}`).textContent = `${progressPercent}%`;
+        });
+    });
+</script>
+{% endblock %} 

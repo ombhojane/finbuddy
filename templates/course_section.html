@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+{% block title %}{{ section.title }} - {{ module.title }} - FinBuddy{% endblock %}
+{% block content %}
+<style>
+    .section-header {
+        background-color: #f5f7fa;
+        padding: 20px 0;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        color: #4B5563;
+        text-decoration: none;
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+    
+    .back-link:hover {
+        color: #1F2937;
+    }
+    
+    .back-icon {
+        margin-right: 8px;
+    }
+    
+    .module-name {
+        font-size: 16px;
+        color: #4F46E5;
+        margin-bottom: 5px;
+    }
+    
+    .section-title {
+        font-size: 28px;
+        font-weight: 800;
+        color: #111;
+        margin-bottom: 0;
+    }
+    
+    .section-content {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+    }
+    
+    .section-content h2 {
+        font-size: 24px;
+        margin-top: 20px;
+        margin-bottom: 15px;
+        color: #111;
+    }
+    
+    .section-content h3 {
+        font-size: 20px;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        color: #333;
+    }
+    
+    .section-content p {
+        font-size: 16px;
+        line-height: 1.7;
+        color: #444;
+        margin-bottom: 15px;
+    }
+    
+    .section-content ul, .section-content ol {
+        margin-bottom: 15px;
+        padding-left: 25px;
+    }
+    
+    .section-content li {
+        margin-bottom: 8px;
+        line-height: 1.6;
+    }
+    
+    .complete-button {
+        background-color: #4F46E5;
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .complete-button:hover {
+        background-color: #3730A3;
+    }
+    
+    .complete-button.completed {
+        background-color: #10B981;
+    }
+    
+    .complete-button.completed:hover {
+        background-color: #059669;
+    }
+    
+    .navigation-controls {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+    
+    .nav-button {
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+        color: #4B5563;
+        font-weight: 600;
+        padding: 10px 15px;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s;
+    }
+    
+    .nav-button:hover {
+        background-color: #f9fafb;
+        color: #111;
+    }
+    
+    .nav-button-previous {
+        padding-left: 10px;
+    }
+    
+    .nav-button-next {
+        padding-right: 10px;
+    }
+    
+    .nav-icon {
+        font-size: 18px;
+    }
+    
+    .nav-icon-previous {
+        margin-right: 8px;
+    }
+    
+    .nav-icon-next {
+        margin-left: 8px;
+    }
+    
+    .nav-text {
+        font-size: 14px;
+        color: #9CA3AF;
+        display: block;
+    }
+    
+    .nav-title {
+        font-size: 16px;
+        color: #4B5563;
+    }
+</style>
+
+<section class="content">
+    <div class="left-content" style="display: block; padding: 40px;">
+        <div class="section-intro">
+            <a href="{{ url_for('course_module', module_id=module.id) }}" class="back-link">
+                <span class="back-icon">←</span> Back to {{ module.title }}
+            </a>
+            <div class="module-name">{{ module.title }}</div>
+            <h1 class="section-title">{{ section.title }}</h1>
+        </div>
+    
+        <div class="section-content">
+            {{ section.content|safe }}
+        </div>
+        
+        <div class="text-center">
+            <button id="completeButton" class="complete-button" onclick="markAsCompleted()">
+                Mark as Completed
+            </button>
+        </div>
+        
+        <div class="navigation-controls">
+            {% if prev_section %}
+            <a href="{{ url_for('course_section', section_id=prev_section.id) }}" class="nav-button nav-button-previous">
+                <span class="nav-icon nav-icon-previous">←</span>
+                <div>
+                    <span class="nav-text">Previous</span>
+                    <span class="nav-title">{{ prev_section.title }}</span>
+                </div>
+            </a>
+            {% else %}
+            <div></div>
+            {% endif %}
+            
+            {% if next_section %}
+            <a href="{{ url_for('course_section', section_id=next_section.id) }}" class="nav-button nav-button-next">
+                <div>
+                    <span class="nav-text">Next</span>
+                    <span class="nav-title">{{ next_section.title }}</span>
+                </div>
+                <span class="nav-icon nav-icon-next">→</span>
+            </a>
+            {% else %}
+            <a href="{{ url_for('course_module', module_id=module.id) }}" class="nav-button nav-button-next">
+                <div>
+                    <span class="nav-text">Back to</span>
+                    <span class="nav-title">Module Overview</span>
+                </div>
+                <span class="nav-icon nav-icon-next">→</span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="right-content"><br>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 class="text-primary mb-3">Section Summary</h3>
+            <p class="text-muted mb-3">You're currently learning about:</p>
+            <ul class="list-unstyled">
+                <li><i class="fas fa-bookmark text-info mr-2"></i> <strong>Module:</strong> {{ module.title }}</li>
+                <li><i class="fas fa-book-open text-info mr-2"></i> <strong>Section:</strong> {{ section.title }}</li>
+            </ul>
+            <hr>
+            <h4 class="mb-2">Module Progress</h4>
+            <div class="progress mb-3" style="height: 10px;">
+                <div id="module-progress-bar" class="progress-bar bg-success" style="width: 0%"></div>
+            </div>
+            <p id="module-progress-text" class="small text-muted text-center">Loading progress...</p>
+            
+            <div class="mt-4">
+                <h5>Next Steps</h5>
+                {% if next_section %}
+                <p>After completing this section, you'll move on to "{{ next_section.title }}"</p>
+                {% else %}
+                <p>This is the final section of this module!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sectionId = {{ section.id }};
+        const moduleId = {{ module.id }};
+        
+        // Load completed sections from localStorage
+        let completedSections = JSON.parse(localStorage.getItem('finbuddy_completed_sections')) || [];
+        
+        // Check if this section is completed
+        const isCompleted = completedSections.includes(sectionId);
+        const completeButton = document.getElementById('completeButton');
+        
+        if (isCompleted) {
+            completeButton.classList.add('completed');
+            completeButton.textContent = 'Completed ✓';
+        }
+        
+        // Get module sections
+        const moduleSections = [
+            {% if module.id == 1 %}
+            1, 2, 3
+            {% elif module.id == 2 %}
+            4, 5, 6
+            {% elif module.id == 3 %}
+            7, 8, 9
+            {% endif %}
+        ];
+        
+        // Calculate module progress
+        const completedInModule = moduleSections.filter(id => completedSections.includes(id)).length;
+        const progressPercent = Math.round((completedInModule / moduleSections.length) * 100);
+        
+        // Update progress bar in sidebar
+        document.getElementById('module-progress-bar').style.width = `${progressPercent}%`;
+        document.getElementById('module-progress-text').textContent = 
+            `${completedInModule} of ${moduleSections.length} sections (${progressPercent}%)`;
+    });
+    
+    function markAsCompleted() {
+        const button = document.getElementById('completeButton');
+        const sectionId = {{ section.id }};
+        
+        // Check if already completed
+        if (button.classList.contains('completed')) {
+            return;
+        }
+        
+        // Get current completed sections from localStorage
+        let completedSections = JSON.parse(localStorage.getItem('finbuddy_completed_sections')) || [];
+        
+        // Add this section if not already present
+        if (!completedSections.includes(sectionId)) {
+            completedSections.push(sectionId);
+            localStorage.setItem('finbuddy_completed_sections', JSON.stringify(completedSections));
+        }
+        
+        // Update button appearance
+        button.classList.add('completed');
+        button.textContent = 'Completed ✓';
+        
+        // Get redirect URL through AJAX
+        fetch('{{ url_for("complete_section", section_id=section.id) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.redirect) {
+                // Redirect to next section after a short delay
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 1000);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+{% endblock %} 

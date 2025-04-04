@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, flash, redirect, url_for, Response, send_from_directory, jsonify, session
 from google.oauth2 import id_token  # Import id_token for Google OAuth2
 import os, uuid, time
+from functools import wraps
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import re
 import pdfplumber
@@ -200,7 +201,7 @@ def call_api_by_name(api_name, **kwargs):
     return call_indian_api(endpoint, mapped_params)
 
 # Financial assistant system prompt
-SYSTEM_PROMPT = """You are Flaix, a helpful and knowledgeable financial assistant designed specifically for Indian users. 
+SYSTEM_PROMPT = """You are FinBuddy, a helpful and knowledgeable financial assistant designed specifically for Indian users. 
 Your purpose is to improve financial literacy and provide guidance on investments in the Indian market.
 
 Key responsibilities:
@@ -364,7 +365,7 @@ def get_gemini_response(user_query, conversation_history=""):
             types.Content(
                 role="model",
                 parts=[
-                    types.Part.from_text(text="I understand my role as Flaix, a financial assistant for Indian users. I'll provide helpful information about investing and financial planning in simple language.")
+                    types.Part.from_text(text="I understand my role as FinBuddy, a financial assistant for Indian users. I'll provide helpful information about investing and financial planning in simple language.")
                 ],
             ),
             types.Content(
@@ -418,7 +419,7 @@ def get_gemma_response_fallback(query):
     """Fallback to use Groq's Gemma model when Gemini is not available"""
     try:
         system_prompt = """
-        You are Flaix, a helpful and knowledgeable financial assistant designed specifically for Indian users. 
+        You are FinBuddy, a helpful and knowledgeable financial assistant designed specifically for Indian users. 
         Your purpose is to improve financial literacy and provide guidance on investments in the Indian market.
         """
         
@@ -439,6 +440,10 @@ def get_gemma_response_fallback(query):
 
 @app.route('/chatbot')
 def chatbot():
+    # Check if user is logged in
+    if 'user_id' not in session:
+        flash('Please log in to access this page.', 'warning')
+        return redirect(url_for('signin'))
     return render_template('chatbot.html', active_page='chatbot')
 
 @app.route('/dashboard')
@@ -630,7 +635,58 @@ def landingpage():
 
 @app.route('/signin')
 def signin():
+    # If user is already logged in, redirect to chatbot
+    if 'user_id' in session:
+        return redirect(url_for('chatbot'))
     return render_template('signin.html', active_page='home')
+
+@app.route('/auth', methods=['POST'])
+def authenticate():
+    try:
+        # Get the ID token from the request
+        id_token = request.json.get('idToken')
+        if not id_token:
+            return jsonify({'error': 'No ID token provided'}), 400
+            
+        # Verify the ID token
+        decoded_token = auth.verify_id_token(id_token)
+        
+        # Get user info
+        user_id = decoded_token['uid']
+        email = decoded_token.get('email', '')
+        name = decoded_token.get('name', '')
+        
+        # If name is not in token, try to get it from Firebase Auth
+        if not name:
+            try:
+                user = auth.get_user(user_id)
+                name = user.display_name or ''
+            except:
+                name = email.split('@')[0]  # Use part of email as name if nothing else available
+        
+        # Store user data in session
+        session['user_id'] = user_id
+        session['email'] = email
+        session['name'] = name
+        
+        return jsonify({
+            'success': True,
+            'redirect': url_for('chatbot'),
+            'user': {
+                'id': user_id,
+                'email': email,
+                'name': name
+            }
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 401
+
+@app.route('/logout')
+def logout():
+    # Clear the session
+    session.clear()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('landingpage'))
 
 @app.route('/dasboard')
 def index():
@@ -701,6 +757,32 @@ class Note(db.Model):
     note_type = db.Column(db.String(50))  # YouTube Video Notes, Tutorial Notes, Scripts, etc.
     due_date = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# Financial Literacy Course Models
+class CourseModule(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    order = db.Column(db.Integer, nullable=False)
+    image = db.Column(db.String(200))
+    sections = db.relationship('CourseSection', backref='module', lazy=True)
+    
+class CourseSection(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    order = db.Column(db.Integer, nullable=False)
+    module_id = db.Column(db.Integer, db.ForeignKey('course_module.id'), nullable=False)
+    
+class UserProgress(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(128), nullable=False)
+    section_id = db.Column(db.Integer, db.ForeignKey('course_section.id'), nullable=False)
+    completed = db.Column(db.Boolean, default=False)
+    completed_at = db.Column(db.DateTime)
+    
+    # Create a unique constraint to ensure one entry per user per section
+    __table_args__ = (db.UniqueConstraint('user_id', 'section_id'),)
 
 @app.route('/notes')
 @app.route('/notes/<path:note_type>')
@@ -2413,7 +2495,334 @@ def firebase_auth():
 
 @app.route('/quizpage')
 def quizpage():
-    return render_template('quizpage.html', active_page='quizpage')
+    return render_template('quizpage.html')
+
+# Financial Literacy Course Routes
+@app.route('/courses')
+def courses():
+    # Hardcoded module data instead of database queries
+    modules = [
+        {
+            'id': 1,
+            'title': 'Financial Basics',
+            'description': 'Learn the fundamentals of finance and money management',
+            'image': 'money_basics.jpg'
+        },
+        {
+            'id': 2,
+            'title': 'Saving & Budgeting',
+            'description': 'Strategies for saving money and creating effective budgets',
+            'image': 'saving.jpg'
+        },
+        {
+            'id': 3,
+            'title': 'Investment Fundamentals',
+            'description': 'Introduction to investments and wealth building',
+            'image': 'investment.jpg'
+        }
+    ]
+    
+    # Hardcoded progress data
+    module_progress = {
+        1: 33,  # 33% complete
+        2: 66,  # 66% complete
+        3: 0    # 0% complete
+    }
+    
+    return render_template('courses.html', modules=modules, module_progress=module_progress, active_page='courses')
+
+@app.route('/course/<int:module_id>')
+def course_module(module_id):
+    # Hardcoded module data
+    modules = {
+        1: {
+            'id': 1,
+            'title': 'Financial Basics',
+            'description': 'Learn the fundamentals of finance and money management'
+        },
+        2: {
+            'id': 2,
+            'title': 'Saving & Budgeting',
+            'description': 'Strategies for saving money and creating effective budgets'
+        },
+        3: {
+            'id': 3,
+            'title': 'Investment Fundamentals',
+            'description': 'Introduction to investments and wealth building'
+        }
+    }
+    
+    # Hardcoded sections data
+    sections_by_module = {
+        1: [
+            {
+                'id': 1,
+                'title': 'What is Money?',
+                'order': 1,
+                'module_id': 1
+            },
+            {
+                'id': 2,
+                'title': 'Income & Expenses',
+                'order': 2,
+                'module_id': 1
+            },
+            {
+                'id': 3,
+                'title': 'Financial Goals',
+                'order': 3,
+                'module_id': 1
+            }
+        ],
+        2: [
+            {
+                'id': 4,
+                'title': 'Creating a Budget',
+                'order': 1,
+                'module_id': 2
+            },
+            {
+                'id': 5,
+                'title': 'Saving Strategies',
+                'order': 2,
+                'module_id': 2
+            },
+            {
+                'id': 6,
+                'title': 'Debt Management',
+                'order': 3,
+                'module_id': 2
+            }
+        ],
+        3: [
+            {
+                'id': 7,
+                'title': 'Investment Basics',
+                'order': 1,
+                'module_id': 3
+            },
+            {
+                'id': 8,
+                'title': 'Types of Investments',
+                'order': 2,
+                'module_id': 3
+            },
+            {
+                'id': 9,
+                'title': 'Building a Portfolio',
+                'order': 3,
+                'module_id': 3
+            }
+        ]
+    }
+    
+    # Hardcoded progress data (simulated completed sections)
+    progress_data = {
+        1: True,   # Section 1 is completed
+        5: True    # Section 5 is completed
+    }
+    
+    # Get the module
+    module = modules.get(module_id)
+    if not module:
+        return "Module not found", 404
+    
+    # Get sections for this module
+    sections = sections_by_module.get(module_id, [])
+    
+    return render_template('course_module.html', module=module, sections=sections, progress_data=progress_data, active_page='courses')
+
+@app.route('/course/section/<int:section_id>')
+def course_section(section_id):
+    # Hardcoded section content
+    sections = {
+        1: {
+            'id': 1,
+            'title': 'What is Money?',
+            'content': '<h2>Understanding Money</h2><p>Money is a medium of exchange that allows people to trade goods and services. It serves as a store of value and a unit of account.</p><h3>Functions of Money</h3><ul><li>Medium of Exchange</li><li>Store of Value</li><li>Unit of Account</li></ul>',
+            'module_id': 1,
+            'order': 1
+        },
+        2: {
+            'id': 2,
+            'title': 'Income & Expenses',
+            'content': '<h2>Income and Expenses</h2><p>Income is money coming in, while expenses are money going out. Understanding the balance between these is crucial for financial health.</p><h3>Types of Income</h3><ul><li>Active Income (salary, wages)</li><li>Passive Income (investments, rentals)</li><li>Portfolio Income (dividends, interest)</li></ul>',
+            'module_id': 1,
+            'order': 2
+        },
+        3: {
+            'id': 3,
+            'title': 'Financial Goals',
+            'content': '<h2>Setting Financial Goals</h2><p>Financial goals give direction to your money management efforts. They should be Specific, Measurable, Achievable, Relevant, and Time-bound (SMART).</p><h3>Types of Financial Goals</h3><ul><li>Short-term goals (0-2 years)</li><li>Medium-term goals (2-5 years)</li><li>Long-term goals (5+ years)</li></ul>',
+            'module_id': 1,
+            'order': 3
+        },
+        4: {
+            'id': 4,
+            'title': 'Creating a Budget',
+            'content': '<h2>Budgeting Basics</h2><p>A budget is a plan that helps you manage your money effectively. It tracks income, expenses, and helps ensure you don\'t spend more than you earn.</p><h3>Steps to Create a Budget</h3><ol><li>Calculate your net income</li><li>Track your spending</li><li>Set realistic goals</li><li>Plan your budget</li><li>Adjust as needed</li></ol>',
+            'module_id': 2,
+            'order': 1
+        },
+        5: {
+            'id': 5,
+            'title': 'Saving Strategies',
+            'content': '<h2>Effective Saving Strategies</h2><p>Saving money creates financial security and helps achieve your goals. It\'s important to make saving a habit.</p><h3>Saving Tips</h3><ul><li>Pay yourself first - save before spending</li><li>Automate your savings</li><li>Build an emergency fund</li><li>Use the 50/30/20 rule</li></ul>',
+            'module_id': 2,
+            'order': 2
+        },
+        6: {
+            'id': 6,
+            'title': 'Debt Management',
+            'content': '<h2>Managing Debt</h2><p>Not all debt is bad, but managing it wisely is crucial for financial health. Understanding the difference between good and bad debt helps make better financial decisions.</p><h3>Debt Reduction Strategies</h3><ul><li>Debt Avalanche - Pay highest interest first</li><li>Debt Snowball - Pay smallest balance first</li><li>Debt Consolidation</li><li>Refinancing</li></ul>',
+            'module_id': 2,
+            'order': 3
+        },
+        7: {
+            'id': 7,
+            'title': 'Investment Basics',
+            'content': '<h2>Introduction to Investing</h2><p>Investing is putting money to work to generate income or increase value over time. Unlike saving, investing involves risk but offers potential for higher returns.</p><h3>Key Investment Concepts</h3><ul><li>Risk and Return</li><li>Diversification</li><li>Compound Interest</li><li>Time Value of Money</li></ul>',
+            'module_id': 3,
+            'order': 1
+        },
+        8: {
+            'id': 8,
+            'title': 'Types of Investments',
+            'content': '<h2>Common Investment Options</h2><p>There are many ways to invest your money, each with different levels of risk and potential return.</p><h3>Investment Types</h3><ul><li>Stocks - Ownership in companies</li><li>Bonds - Lending to governments or companies</li><li>Mutual Funds - Pooled investments</li><li>Real Estate - Property investments</li><li>Exchange-Traded Funds (ETFs)</li></ul>',
+            'module_id': 3,
+            'order': 2
+        },
+        9: {
+            'id': 9,
+            'title': 'Building a Portfolio',
+            'content': '<h2>Creating an Investment Portfolio</h2><p>A good investment portfolio is diversified across different asset classes and aligned with your financial goals and risk tolerance.</p><h3>Portfolio Building Steps</h3><ol><li>Assess your risk tolerance</li><li>Determine your time horizon</li><li>Decide on asset allocation</li><li>Select specific investments</li><li>Monitor and rebalance</li></ol>',
+            'module_id': 3,
+            'order': 3
+        }
+    }
+    
+    # Hardcoded module data
+    modules = {
+        1: {
+            'id': 1,
+            'title': 'Financial Basics',
+            'description': 'Learn the fundamentals of finance and money management'
+        },
+        2: {
+            'id': 2,
+            'title': 'Saving & Budgeting',
+            'description': 'Strategies for saving money and creating effective budgets'
+        },
+        3: {
+            'id': 3,
+            'title': 'Investment Fundamentals',
+            'description': 'Introduction to investments and wealth building'
+        }
+    }
+    
+    # Hardcoded progress data
+    completed = section_id in [1, 5]  # Sections 1 and 5 are completed
+    
+    # Get the section
+    section = sections.get(section_id)
+    if not section:
+        return "Section not found", 404
+    
+    # Get the module
+    module = modules.get(section['module_id'])
+    if not module:
+        return "Module not found", 404
+    
+    # Get prev and next sections for navigation
+    section_ids = [s['id'] for s in sorted([s for s in sections.values() if s['module_id'] == section['module_id']], key=lambda x: x['order'])]
+    current_index = section_ids.index(section_id)
+    
+    prev_section = sections.get(section_ids[current_index - 1]) if current_index > 0 else None
+    next_section = sections.get(section_ids[current_index + 1]) if current_index < len(section_ids) - 1 else None
+    
+    return render_template('course_section.html', 
+                          section=section, 
+                          module=module, 
+                          completed=completed, 
+                          prev_section=prev_section, 
+                          next_section=next_section, 
+                          active_page='courses')
+
+@app.route('/course/complete-section/<int:section_id>', methods=['POST'])
+def complete_section(section_id):
+    # Simply return the redirect URL without updating any database
+    # The completion status is now tracked in localStorage on the client side
+    
+    # Find next section for redirection
+    sections = {
+        1: {'module_id': 1, 'order': 1},
+        2: {'module_id': 1, 'order': 2},
+        3: {'module_id': 1, 'order': 3},
+        4: {'module_id': 2, 'order': 1},
+        5: {'module_id': 2, 'order': 2},
+        6: {'module_id': 2, 'order': 3},
+        7: {'module_id': 3, 'order': 1},
+        8: {'module_id': 3, 'order': 2},
+        9: {'module_id': 3, 'order': 3}
+    }
+    
+    section = sections.get(section_id)
+    if not section:
+        return jsonify({'success': False, 'message': 'Section not found'})
+    
+    # Get all sections for this module
+    module_sections = sorted([s for s_id, s in sections.items() if s['module_id'] == section['module_id']], key=lambda x: x['order'])
+    
+    # Find current section index
+    current_index = next((i for i, s in enumerate(module_sections) if s.get('order') == section['order']), -1)
+    
+    if current_index < len(module_sections) - 1:
+        # There is a next section
+        next_section_id = next((s_id for s_id, s in sections.items() 
+                              if s['module_id'] == section['module_id'] and s['order'] == module_sections[current_index + 1]['order']), None)
+        if next_section_id:
+            return jsonify({'success': True, 'redirect': url_for('course_section', section_id=next_section_id)})
+    
+    # No next section, redirect to module page
+    return jsonify({'success': True, 'redirect': url_for('course_module', module_id=section['module_id'])})
+
+@app.route('/profile')
+def profile():
+    # Check if user is logged in
+    if 'user_id' not in session:
+        flash('Please log in to access this page.', 'warning')
+        return redirect(url_for('signin'))
+        
+    user_id = session.get('user_id')
+    user_email = session.get('email')
+    user_name = session.get('name')
+    
+    # User must be logged in due to check above
+    user_data = {
+        'id': user_id,
+        'email': user_email,
+        'name': user_name
+    }
+    
+    # We don't need to pass module progress data as it's handled by JavaScript with localStorage
+    return render_template('profile.html', user=user_data, active_page='profile')
+
+# Admin route to seed course data
+@app.route('/admin/seed-course-data')
+def seed_course_data():
+    # Since we're using static data, this endpoint is no longer needed
+    # But keep it for compatibility
+    return "Using static hardcoded data instead of database. No need to seed data."
+
+# Login required decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please log in to access this page.', 'warning')
+            return redirect(url_for('signin'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 if __name__ == '__main__':
     app.run(debug=True)

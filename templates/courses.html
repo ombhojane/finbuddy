@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}Financial Literacy Courses - FinBuddy{% endblock %}
+{% block content %}
+<style>
+    .course-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+    
+    .course-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .course-image {
+        height: 180px;
+        background-size: cover;
+        background-position: center;
+    }
+    
+    .course-content {
+        padding: 25px;
+    }
+    
+    .course-title {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: #333;
+    }
+    
+    .course-description {
+        color: #666;
+        font-size: 15px;
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+    
+    .progress-container {
+        margin-top: 15px;
+        background: #f0f0f0;
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .progress-bar {
+        height: 100%;
+        background: #4F46E5;
+        border-radius: 4px;
+    }
+    
+    .progress-text {
+        font-size: 14px;
+        color: #666;
+        margin-top: 8px;
+        text-align: right;
+    }
+    
+    .course-button {
+        display: inline-block;
+        background-color: #4F46E5;
+        color: white;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 15px;
+        transition: background-color 0.3s;
+    }
+    
+    .course-button:hover {
+        background-color: #3730A3;
+    }
+    
+    .page-header {
+        margin-bottom: 30px;
+    }
+    
+    .page-title {
+        font-size: 32px;
+        font-weight: 800;
+        color: #111;
+        margin-bottom: 15px;
+    }
+    
+    .page-description {
+        font-size: 17px;
+        color: #555;
+        max-width: 700px;
+        line-height: 1.6;
+    }
+</style>
+
+<section class="content">
+    <div class="left-content" style="display: block; padding: 40px;">
+        <div class="page-header">
+            <h1 class="page-title">Financial Literacy Courses</h1>
+            <p class="page-description">
+                Build your financial knowledge with our comprehensive courses. 
+                Track your progress as you learn the fundamentals of personal finance, 
+                budgeting, investing, and more.
+            </p>
+            
+            <div class="alert alert-info mt-3">
+                <h5 class="font-weight-bold">Demo Implementation</h5>
+                <p>This implementation uses localStorage to track your progress. Your progress will be saved in your browser,
+                even if you refresh the page or come back later.</p>
+            </div>
+        </div>
+        
+        <div class="course-grid">
+            {% for module in modules %}
+            <div class="course-card">
+                <div class="course-image" style="background-image: url('{{ url_for('static', filename='images/' + module.image) }}'), url('https://placehold.co/600x400/eef2ff/4f46e5?text=Financial+Course')"></div>
+                <div class="course-content">
+                    <h2 class="course-title">{{ module.title }}</h2>
+                    <p class="course-description">{{ module.description }}</p>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar progress-module-{{ module.id }}" style="width: 0%"></div>
+                    </div>
+                    <p class="progress-text progress-text-{{ module.id }}">0% complete</p>
+                    
+                    <a href="{{ url_for('course_module', module_id=module.id) }}" class="course-button">Start Learning</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="right-content"><br>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 class="text-primary mb-3">Why Learn Financial Literacy?</h3>
+            <p class="text-muted">Taking control of your financial future starts with education. Here's how these courses help:</p>
+            <br>
+            <div style="margin-bottom: 10px; display: flex; align-items: start;">
+                <i class="fas fa-check-circle mt-1" style="color: #0d6efd; margin-right: 10px;"></i>
+                <div>
+                    <strong>Build Wealth:</strong> Learn fundamental concepts to make smarter decisions with your money and build long-term wealth.
+                </div>
+            </div>
+            <div style="margin-bottom: 10px; display: flex; align-items: start;">
+                <i class="fas fa-check-circle mt-1" style="color: #0d6efd; margin-right: 10px;"></i>
+                <div>
+                    <strong>Reduce Financial Stress:</strong> Gain confidence in managing your finances, creating budgets, and planning for the future.
+                </div>
+            </div>
+            <div style="margin-bottom: 10px; display: flex; align-items: start;">
+                <i class="fas fa-check-circle mt-1" style="color: #0d6efd; margin-right: 10px;"></i>
+                <div>
+                    <strong>Make Better Decisions:</strong> Understand investment options, risk management, and how to evaluate financial opportunities.
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Function to load progress from localStorage
+    function loadProgress() {
+        // Get completed sections from localStorage
+        let completedSections = JSON.parse(localStorage.getItem('finbuddy_completed_sections')) || [];
+        
+        // Module data structure
+        const moduleData = {
+            1: { total: 3, sections: [1, 2, 3] },
+            2: { total: 3, sections: [4, 5, 6] },
+            3: { total: 3, sections: [7, 8, 9] }
+        };
+        
+        // Calculate progress for each module
+        Object.keys(moduleData).forEach(moduleId => {
+            const module = moduleData[moduleId];
+            const completedCount = module.sections.filter(sectionId => 
+                completedSections.includes(sectionId)
+            ).length;
+            
+            const progressPercent = Math.round((completedCount / module.total) * 100);
+            
+            // Update UI
+            document.querySelector(`.progress-module-${moduleId}`).style.width = `${progressPercent}%`;
+            document.querySelector(`.progress-text-${moduleId}`).textContent = `${progressPercent}% complete`;
+        });
+    }
+    
+    // Load progress when page loads
+    document.addEventListener('DOMContentLoaded', loadProgress);
+</script>
+{% endblock %} 

@@ -85,7 +85,25 @@
                     <b></b>
                     <a href="{{ url_for('chatbot') }}">
                         <i class="fa fa-comment-dollar nav-icon"></i>
-                        <span class="nav-text">Flaix Assistant</span>
+                        <span class="nav-text">Assistant</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item {% if active_page == 'courses' %}active{% endif %}">
+                    <b></b>
+                    <b></b>
+                    <a href="{{ url_for('courses') }}">
+                        <i class="fa fa-graduation-cap nav-icon"></i>
+                        <span class="nav-text">Courses</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item {% if active_page == 'profile' %}active{% endif %}">
+                    <b></b>
+                    <b></b>
+                    <a href="{{ url_for('profile') }}">
+                        <i class="fa fa-user nav-icon"></i>
+                        <span class="nav-text">Profile</span>
                     </a>
                 </li>
                 
@@ -95,6 +113,15 @@
                     <a href="#">
                         <i class="fa fa-person-running nav-icon"></i>
                         <span class="nav-text">Activities</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <b></b>
+                    <b></b>
+                    <a href="{{ url_for('logout') }}">
+                        <i class="fa fa-sign-out-alt nav-icon"></i>
+                        <span class="nav-text">Logout</span>
                     </a>
                 </li>
             </ul>
