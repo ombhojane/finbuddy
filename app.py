@@ -2504,29 +2504,43 @@ def courses():
     modules = [
         {
             'id': 1,
-            'title': 'Financial Basics',
-            'description': 'Learn the fundamentals of finance and money management',
-            'image': 'money_basics.jpg'
+            'title': 'Investment Basics',
+            'description': 'Learn the fundamentals of investing and building wealth',
+            'image': 'investment_basics.jpg'
         },
         {
             'id': 2,
-            'title': 'Saving & Budgeting',
-            'description': 'Strategies for saving money and creating effective budgets',
-            'image': 'saving.jpg'
+            'title': 'Stock Market 101',
+            'description': 'Understanding how the stock market works',
+            'image': 'stock_market.jpg'
         },
         {
             'id': 3,
-            'title': 'Investment Fundamentals',
-            'description': 'Introduction to investments and wealth building',
-            'image': 'investment.jpg'
+            'title': 'Mutual Funds Explained',
+            'description': 'Learn how mutual funds work and their benefits',
+            'image': 'mutual_funds.jpg'
+        },
+        {
+            'id': 4,
+            'title': 'Retirement Planning',
+            'description': 'Building a secure financial future',
+            'image': 'retirement.jpg'
+        },
+        {
+            'id': 5,
+            'title': 'Tax-Efficient Investing',
+            'description': 'Strategies to minimize your tax burden',
+            'image': 'tax_efficient.jpg'
         }
     ]
     
     # Hardcoded progress data
     module_progress = {
-        1: 33,  # 33% complete
-        2: 66,  # 66% complete
-        3: 0    # 0% complete
+        1: 0,  # 0% complete
+        2: 0,  # 0% complete
+        3: 0,  # 0% complete
+        4: 0,  # 0% complete
+        5: 0   # 0% complete
     }
     
     return render_template('courses.html', modules=modules, module_progress=module_progress, active_page='courses')
@@ -2537,18 +2551,28 @@ def course_module(module_id):
     modules = {
         1: {
             'id': 1,
-            'title': 'Financial Basics',
-            'description': 'Learn the fundamentals of finance and money management'
+            'title': 'Investment Basics',
+            'description': 'Learn the fundamentals of investing and building wealth'
         },
         2: {
             'id': 2,
-            'title': 'Saving & Budgeting',
-            'description': 'Strategies for saving money and creating effective budgets'
+            'title': 'Stock Market 101',
+            'description': 'Understanding how the stock market works'
         },
         3: {
             'id': 3,
-            'title': 'Investment Fundamentals',
-            'description': 'Introduction to investments and wealth building'
+            'title': 'Mutual Funds Explained',
+            'description': 'Learn how mutual funds work and their benefits'
+        },
+        4: {
+            'id': 4,
+            'title': 'Retirement Planning',
+            'description': 'Building a secure financial future'
+        },
+        5: {
+            'id': 5,
+            'title': 'Tax-Efficient Investing',
+            'description': 'Strategies to minimize your tax burden'
         }
     }
     
@@ -2557,19 +2581,19 @@ def course_module(module_id):
         1: [
             {
                 'id': 1,
-                'title': 'What is Money?',
+                'title': 'What is Investing?',
                 'order': 1,
                 'module_id': 1
             },
             {
                 'id': 2,
-                'title': 'Income & Expenses',
+                'title': 'Types of Investments',
                 'order': 2,
                 'module_id': 1
             },
             {
                 'id': 3,
-                'title': 'Financial Goals',
+                'title': 'Risk vs. Return',
                 'order': 3,
                 'module_id': 1
             }
@@ -2577,19 +2601,19 @@ def course_module(module_id):
         2: [
             {
                 'id': 4,
-                'title': 'Creating a Budget',
+                'title': 'What is the Stock Market?',
                 'order': 1,
                 'module_id': 2
             },
             {
                 'id': 5,
-                'title': 'Saving Strategies',
+                'title': 'Stock Exchanges',
                 'order': 2,
                 'module_id': 2
             },
             {
                 'id': 6,
-                'title': 'Debt Management',
+                'title': 'Bull vs. Bear Markets',
                 'order': 3,
                 'module_id': 2
             }
@@ -2597,30 +2621,67 @@ def course_module(module_id):
         3: [
             {
                 'id': 7,
-                'title': 'Investment Basics',
+                'title': 'What are Mutual Funds?',
                 'order': 1,
                 'module_id': 3
             },
             {
                 'id': 8,
-                'title': 'Types of Investments',
+                'title': 'Types of Mutual Funds',
                 'order': 2,
                 'module_id': 3
             },
             {
                 'id': 9,
-                'title': 'Building a Portfolio',
+                'title': 'Advantages and Disadvantages',
                 'order': 3,
                 'module_id': 3
+            }
+        ],
+        4: [
+            {
+                'id': 10,
+                'title': 'Why Plan for Retirement?',
+                'order': 1,
+                'module_id': 4
+            },
+            {
+                'id': 11,
+                'title': 'Retirement Accounts',
+                'order': 2,
+                'module_id': 4
+            },
+            {
+                'id': 12,
+                'title': 'The 4% Rule',
+                'order': 3,
+                'module_id': 4
+            }
+        ],
+        5: [
+            {
+                'id': 13,
+                'title': 'The Impact of Taxes on Investments',
+                'order': 1,
+                'module_id': 5
+            },
+            {
+                'id': 14,
+                'title': 'Tax-Advantaged Accounts',
+                'order': 2,
+                'module_id': 5
+            },
+            {
+                'id': 15,
+                'title': 'Tax-Loss Harvesting',
+                'order': 3,
+                'module_id': 5
             }
         ]
     }
     
     # Hardcoded progress data (simulated completed sections)
-    progress_data = {
-        1: True,   # Section 1 is completed
-        5: True    # Section 5 is completed
-    }
+    progress_data = {}
     
     # Get the module
     module = modules.get(module_id)
@@ -2638,65 +2699,107 @@ def course_section(section_id):
     sections = {
         1: {
             'id': 1,
-            'title': 'What is Money?',
-            'content': '<h2>Understanding Money</h2><p>Money is a medium of exchange that allows people to trade goods and services. It serves as a store of value and a unit of account.</p><h3>Functions of Money</h3><ul><li>Medium of Exchange</li><li>Store of Value</li><li>Unit of Account</li></ul>',
+            'title': 'What is Investing?',
+            'content': '<h2>What is Investing?</h2><p>Investing is the act of allocating resources, usually money, with the expectation of generating income or profit over time. Unlike saving, which is setting aside money for future use with minimal risk, investing involves taking on risk in pursuit of greater returns.</p>',
             'module_id': 1,
             'order': 1
         },
         2: {
             'id': 2,
-            'title': 'Income & Expenses',
-            'content': '<h2>Income and Expenses</h2><p>Income is money coming in, while expenses are money going out. Understanding the balance between these is crucial for financial health.</p><h3>Types of Income</h3><ul><li>Active Income (salary, wages)</li><li>Passive Income (investments, rentals)</li><li>Portfolio Income (dividends, interest)</li></ul>',
+            'title': 'Types of Investments',
+            'content': '<h2>Types of Investments</h2><p>Common investment types include stocks (ownership in a company), bonds (loans to companies or governments), mutual funds (professionally managed portfolios), real estate, and more specialized options like ETFs, REITs, and cryptocurrency.</p>',
             'module_id': 1,
             'order': 2
         },
         3: {
             'id': 3,
-            'title': 'Financial Goals',
-            'content': '<h2>Setting Financial Goals</h2><p>Financial goals give direction to your money management efforts. They should be Specific, Measurable, Achievable, Relevant, and Time-bound (SMART).</p><h3>Types of Financial Goals</h3><ul><li>Short-term goals (0-2 years)</li><li>Medium-term goals (2-5 years)</li><li>Long-term goals (5+ years)</li></ul>',
+            'title': 'Risk vs. Return',
+            'content': '<h2>Risk vs. Return</h2><p>A fundamental principle of investing is the relationship between risk and return. Generally, investments with higher potential returns come with higher risks. Understanding your risk tolerance is crucial for building an appropriate investment portfolio.</p>',
             'module_id': 1,
             'order': 3
         },
         4: {
             'id': 4,
-            'title': 'Creating a Budget',
-            'content': '<h2>Budgeting Basics</h2><p>A budget is a plan that helps you manage your money effectively. It tracks income, expenses, and helps ensure you don\'t spend more than you earn.</p><h3>Steps to Create a Budget</h3><ol><li>Calculate your net income</li><li>Track your spending</li><li>Set realistic goals</li><li>Plan your budget</li><li>Adjust as needed</li></ol>',
+            'title': 'What is the Stock Market?',
+            'content': '<h2>What is the Stock Market?</h2><p>The stock market is a collection of exchanges where stocks (pieces of ownership in businesses) are traded. It provides companies with access to capital and investors with potential investment returns through capital gains and dividends.</p>',
             'module_id': 2,
             'order': 1
         },
         5: {
             'id': 5,
-            'title': 'Saving Strategies',
-            'content': '<h2>Effective Saving Strategies</h2><p>Saving money creates financial security and helps achieve your goals. It\'s important to make saving a habit.</p><h3>Saving Tips</h3><ul><li>Pay yourself first - save before spending</li><li>Automate your savings</li><li>Build an emergency fund</li><li>Use the 50/30/20 rule</li></ul>',
+            'title': 'Stock Exchanges',
+            'content': '<h2>Stock Exchanges</h2><p>Major stock exchanges include the New York Stock Exchange (NYSE) and NASDAQ in the US, as well as international exchanges like the London Stock Exchange, Tokyo Stock Exchange, and Shanghai Stock Exchange.</p>',
             'module_id': 2,
             'order': 2
         },
         6: {
             'id': 6,
-            'title': 'Debt Management',
-            'content': '<h2>Managing Debt</h2><p>Not all debt is bad, but managing it wisely is crucial for financial health. Understanding the difference between good and bad debt helps make better financial decisions.</p><h3>Debt Reduction Strategies</h3><ul><li>Debt Avalanche - Pay highest interest first</li><li>Debt Snowball - Pay smallest balance first</li><li>Debt Consolidation</li><li>Refinancing</li></ul>',
+            'title': 'Bull vs. Bear Markets',
+            'content': '<h2>Bull vs. Bear Markets</h2><p>A bull market is characterized by rising stock prices and optimism, while a bear market features falling prices and pessimism. Understanding market cycles can help investors make more informed decisions.</p>',
             'module_id': 2,
             'order': 3
         },
         7: {
             'id': 7,
-            'title': 'Investment Basics',
-            'content': '<h2>Introduction to Investing</h2><p>Investing is putting money to work to generate income or increase value over time. Unlike saving, investing involves risk but offers potential for higher returns.</p><h3>Key Investment Concepts</h3><ul><li>Risk and Return</li><li>Diversification</li><li>Compound Interest</li><li>Time Value of Money</li></ul>',
+            'title': 'What are Mutual Funds?',
+            'content': '<h2>What are Mutual Funds?</h2><p>Mutual funds are investment vehicles that pool money from many investors to purchase a diversified portfolio of stocks, bonds, or other securities. They are managed by professional fund managers who make investment decisions on behalf of the fund\'s investors.</p>',
             'module_id': 3,
             'order': 1
         },
         8: {
             'id': 8,
-            'title': 'Types of Investments',
-            'content': '<h2>Common Investment Options</h2><p>There are many ways to invest your money, each with different levels of risk and potential return.</p><h3>Investment Types</h3><ul><li>Stocks - Ownership in companies</li><li>Bonds - Lending to governments or companies</li><li>Mutual Funds - Pooled investments</li><li>Real Estate - Property investments</li><li>Exchange-Traded Funds (ETFs)</li></ul>',
+            'title': 'Types of Mutual Funds',
+            'content': '<h2>Types of Mutual Funds</h2><p>Common types include equity funds (stocks), fixed-income funds (bonds), money market funds (short-term debt), balanced funds (mix of stocks and bonds), and index funds (track specific market indices).</p>',
             'module_id': 3,
             'order': 2
         },
         9: {
             'id': 9,
-            'title': 'Building a Portfolio',
-            'content': '<h2>Creating an Investment Portfolio</h2><p>A good investment portfolio is diversified across different asset classes and aligned with your financial goals and risk tolerance.</p><h3>Portfolio Building Steps</h3><ol><li>Assess your risk tolerance</li><li>Determine your time horizon</li><li>Decide on asset allocation</li><li>Select specific investments</li><li>Monitor and rebalance</li></ol>',
+            'title': 'Advantages and Disadvantages',
+            'content': '<h2>Advantages and Disadvantages</h2><p>Advantages include diversification, professional management, and accessibility. Disadvantages include fees and expenses, potential tax inefficiency, and lack of control over specific investments.</p>',
             'module_id': 3,
+            'order': 3
+        },
+        10: {
+            'id': 10,
+            'title': 'Why Plan for Retirement?',
+            'content': '<h2>Why Plan for Retirement?</h2><p>Retirement planning involves determining income goals for retirement and the actions and decisions necessary to achieve those goals. Planning early allows you to take advantage of compound interest and adjust your strategy as needed.</p>',
+            'module_id': 4,
+            'order': 1
+        },
+        11: {
+            'id': 11,
+            'title': 'Retirement Accounts',
+            'content': '<h2>Retirement Accounts</h2><p>Common retirement accounts include 401(k)s, IRAs (Traditional and Roth), pension plans, and annuities. Each has different tax advantages, contribution limits, and withdrawal rules.</p>',
+            'module_id': 4,
+            'order': 2
+        },
+        12: {
+            'id': 12,
+            'title': 'The 4% Rule',
+            'content': '<h2>The 4% Rule</h2><p>The 4% rule is a guideline suggesting that retirees can withdraw 4% of their retirement portfolio in the first year, then adjust that amount for inflation each subsequent year, with a high probability of not running out of money for at least 30 years.</p>',
+            'module_id': 4,
+            'order': 3
+        },
+        13: {
+            'id': 13,
+            'title': 'The Impact of Taxes on Investments',
+            'content': '<h2>The Impact of Taxes on Investments</h2><p>Taxes can significantly reduce investment returns over time. Understanding how different investments and accounts are taxed can help you maximize after-tax returns through strategic placement of assets.</p>',
+            'module_id': 5,
+            'order': 1
+        },
+        14: {
+            'id': 14,
+            'title': 'Tax-Advantaged Accounts',
+            'content': '<h2>Tax-Advantaged Accounts</h2><p>These include retirement accounts like 401(k)s and IRAs, Health Savings Accounts (HSAs), and 529 college savings plans. Each offers specific tax advantages for different financial goals.</p>',
+            'module_id': 5,
+            'order': 2
+        },
+        15: {
+            'id': 15,
+            'title': 'Tax-Loss Harvesting',
+            'content': '<h2>Tax-Loss Harvesting</h2><p>This strategy involves selling investments that have experienced losses to offset capital gains tax liability. It can help reduce taxable income while maintaining your overall investment allocation.</p>',
+            'module_id': 5,
             'order': 3
         }
     }
@@ -2705,23 +2808,33 @@ def course_section(section_id):
     modules = {
         1: {
             'id': 1,
-            'title': 'Financial Basics',
-            'description': 'Learn the fundamentals of finance and money management'
+            'title': 'Investment Basics',
+            'description': 'Learn the fundamentals of investing and building wealth'
         },
         2: {
             'id': 2,
-            'title': 'Saving & Budgeting',
-            'description': 'Strategies for saving money and creating effective budgets'
+            'title': 'Stock Market 101',
+            'description': 'Understanding how the stock market works'
         },
         3: {
             'id': 3,
-            'title': 'Investment Fundamentals',
-            'description': 'Introduction to investments and wealth building'
+            'title': 'Mutual Funds Explained',
+            'description': 'Learn how mutual funds work and their benefits'
+        },
+        4: {
+            'id': 4,
+            'title': 'Retirement Planning',
+            'description': 'Building a secure financial future'
+        },
+        5: {
+            'id': 5,
+            'title': 'Tax-Efficient Investing',
+            'description': 'Strategies to minimize your tax burden'
         }
     }
     
     # Hardcoded progress data
-    completed = section_id in [1, 5]  # Sections 1 and 5 are completed
+    completed = False
     
     # Get the section
     section = sections.get(section_id)
@@ -2763,7 +2876,13 @@ def complete_section(section_id):
         6: {'module_id': 2, 'order': 3},
         7: {'module_id': 3, 'order': 1},
         8: {'module_id': 3, 'order': 2},
-        9: {'module_id': 3, 'order': 3}
+        9: {'module_id': 3, 'order': 3},
+        10: {'module_id': 4, 'order': 1},
+        11: {'module_id': 4, 'order': 2},
+        12: {'module_id': 4, 'order': 3},
+        13: {'module_id': 5, 'order': 1},
+        14: {'module_id': 5, 'order': 2},
+        15: {'module_id': 5, 'order': 3}
     }
     
     section = sections.get(section_id)

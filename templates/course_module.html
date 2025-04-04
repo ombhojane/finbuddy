@@ -193,21 +193,33 @@
             <h4 class="mb-2">What You'll Learn</h4>
             {% if module.id == 1 %}
             <ul class="list-unstyled">
-                <li><i class="fas fa-check text-success mr-2"></i> Understand what money is and how it works</li>
-                <li><i class="fas fa-check text-success mr-2"></i> Differentiate between various types of income</li>
-                <li><i class="fas fa-check text-success mr-2"></i> Learn to set SMART financial goals</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Understand what investing is and how it works</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Explore different types of investments</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Learn about risk vs. return tradeoffs</li>
             </ul>
             {% elif module.id == 2 %}
             <ul class="list-unstyled">
-                <li><i class="fas fa-check text-success mr-2"></i> Create effective personal budgets</li>
-                <li><i class="fas fa-check text-success mr-2"></i> Master key saving strategies</li>
-                <li><i class="fas fa-check text-success mr-2"></i> Learn to manage debt responsibly</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Understand stock markets and how they function</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Learn about major stock exchanges</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Recognize bull and bear market patterns</li>
             </ul>
             {% elif module.id == 3 %}
             <ul class="list-unstyled">
-                <li><i class="fas fa-check text-success mr-2"></i> Understand investment principles</li>
-                <li><i class="fas fa-check text-success mr-2"></i> Learn about different investment vehicles</li>
-                <li><i class="fas fa-check text-success mr-2"></i> Build a diversified investment portfolio</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Understand mutual fund principles</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Learn about different mutual fund types</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Recognize advantages and disadvantages</li>
+            </ul>
+            {% elif module.id == 4 %}
+            <ul class="list-unstyled">
+                <li><i class="fas fa-check text-success mr-2"></i> Understand the importance of retirement planning</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Learn about different retirement account options</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Master retirement withdrawal strategies</li>
+            </ul>
+            {% elif module.id == 5 %}
+            <ul class="list-unstyled">
+                <li><i class="fas fa-check text-success mr-2"></i> Understand how taxes impact investment returns</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Explore tax-advantaged account options</li>
+                <li><i class="fas fa-check text-success mr-2"></i> Learn tax-loss harvesting strategies</li>
             </ul>
             {% endif %}
             
@@ -219,6 +231,10 @@
                     {% elif module.id == 2 %}
                     Intermediate
                     {% elif module.id == 3 %}
+                    Intermediate
+                    {% elif module.id == 4 %}
+                    Advanced
+                    {% elif module.id == 5 %}
                     Advanced
                     {% endif %}
                 </p>

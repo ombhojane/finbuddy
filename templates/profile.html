@@ -191,7 +191,7 @@
                 <div class="stat-label">Sections Completed</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">3</div>
+                <div class="stat-value">5</div>
                 <div class="stat-label">Available Modules</div>
             </div>
             <div class="stat-card">
@@ -207,7 +207,7 @@
                 <div class="course-info">
                     <div class="course-icon">📚</div>
                     <div class="course-details">
-                        <h3>Financial Basics</h3>
+                        <h3>Investment Basics</h3>
                         <p>3 sections</p>
                     </div>
                 </div>
@@ -224,7 +224,7 @@
                 <div class="course-info">
                     <div class="course-icon">📚</div>
                     <div class="course-details">
-                        <h3>Saving & Budgeting</h3>
+                        <h3>Stock Market 101</h3>
                         <p>3 sections</p>
                     </div>
                 </div>
@@ -241,7 +241,7 @@
                 <div class="course-info">
                     <div class="course-icon">📚</div>
                     <div class="course-details">
-                        <h3>Investment Fundamentals</h3>
+                        <h3>Mutual Funds Explained</h3>
                         <p>3 sections</p>
                     </div>
                 </div>
@@ -252,6 +252,40 @@
                     <div id="progress-percent-3" class="progress-percentage">0%</div>
                 </div>
                 <a href="{{ url_for('course_module', module_id=3) }}" class="action-button">Continue</a>
+            </div>
+            
+            <div class="progress-item">
+                <div class="course-info">
+                    <div class="course-icon">📚</div>
+                    <div class="course-details">
+                        <h3>Retirement Planning</h3>
+                        <p>3 sections</p>
+                    </div>
+                </div>
+                <div class="course-progress">
+                    <div class="progress-container">
+                        <div id="progress-module-4" class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div id="progress-percent-4" class="progress-percentage">0%</div>
+                </div>
+                <a href="{{ url_for('course_module', module_id=4) }}" class="action-button">Continue</a>
+            </div>
+            
+            <div class="progress-item">
+                <div class="course-info">
+                    <div class="course-icon">📚</div>
+                    <div class="course-details">
+                        <h3>Tax-Efficient Investing</h3>
+                        <p>3 sections</p>
+                    </div>
+                </div>
+                <div class="course-progress">
+                    <div class="progress-container">
+                        <div id="progress-module-5" class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div id="progress-percent-5" class="progress-percentage">0%</div>
+                </div>
+                <a href="{{ url_for('course_module', module_id=5) }}" class="action-button">Continue</a>
             </div>
         </div>
     </div>
@@ -297,11 +331,13 @@
         const moduleData = {
             1: { total: 3, sections: [1, 2, 3] },
             2: { total: 3, sections: [4, 5, 6] },
-            3: { total: 3, sections: [7, 8, 9] }
+            3: { total: 3, sections: [7, 8, 9] },
+            4: { total: 3, sections: [10, 11, 12] },
+            5: { total: 3, sections: [13, 14, 15] }
         };
         
         // Calculate total sections and total completed
-        const totalSections = 9; // 3 modules × 3 sections each
+        const totalSections = 15; // 5 modules × 3 sections each
         const totalCompleted = completedSections.length;
         const overallProgress = Math.round((totalCompleted / totalSections) * 100);
         
