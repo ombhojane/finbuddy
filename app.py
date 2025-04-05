@@ -7,22 +7,14 @@ import re
 import pdfplumber
 from werkzeug.utils import secure_filename
 from PyPDF2 import PdfReader
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_community.vectorstores import FAISS
-from langchain.prompts import ChatPromptTemplate
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.chains import RetrievalQA
 from fpdf import FPDF
 from objective import ObjectiveTest
 from subjective import SubjectiveTest
-from text_filter import clean_text, preserve_content_length, filter_unwanted_text
 import cv2
 import mediapipe as mp
 import numpy as np
 from collections import Counter
 import threading
-import spacy
 import random
 import shutil
 from datetime import datetime
@@ -33,10 +25,6 @@ from tinydb import TinyDB, Query
 from gtts import gTTS
 import json
 import pandas as pd
-#testing
-from langchain.agents import initialize_agent, Tool, AgentType
-from langchain.agents.agent import AgentOutputParser
-from langchain.schema import AgentAction, AgentFinish
 import wikipedia
 from duckduckgo_search import DDGS
 import requests
@@ -74,7 +62,6 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['FOLDERS'], exist_ok=True)
 os.makedirs('data', exist_ok=True)
 db = SQLAlchemy(app)
-nlp = spacy.load("en_core_web_sm")
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 ################ Initialize Groq client #########
@@ -503,24 +490,24 @@ QUIZ_CONFIG = {
 }
 
 
-# Create prompt templates
-generation_prompt = ChatPromptTemplate.from_template("Generate a paragraph based on this topic: {topic}")
-feedback_prompt = ChatPromptTemplate.from_template("""
+# Create prompt templates - replace with string templates
+generation_prompt_template = "Generate a paragraph based on this topic: {topic}"
+feedback_prompt_template = """
 Evaluate the following transcription accuracy:
 Original Paragraph: {original_paragraph}
 Transcribed Text: {transcribed_text}
 Score: {score}/5
 
 Provide brief feedback about the accuracy of the transcription and pronunciation.
-""")
+"""
 #essay
-topic_prompt = ChatPromptTemplate.from_template(
+topic_prompt_template = (
     "Generate an interesting writing topic that would make for a good 250-word essay. "
     "The topic should be specific enough to be focused but broad enough to allow for development. "
     "Return only the topic without any additional text or explanation."
 )
 
-evaluation_prompt = ChatPromptTemplate.from_template("""
+evaluation_prompt_template = """
 Evaluate the following 250-word essay:
 
 Topic: {topic}
@@ -537,16 +524,16 @@ First provide the numerical score as an integer between 1 and 5, then provide a 
 Format your response exactly as:
 SCORE: [number]
 FEEDBACK: [your feedback]
-""")
+"""
 
-generation_Lprompt = ChatPromptTemplate.from_template("Generate a single line sentence based on this topic: {topic}")
-feedback_Lprompt = ChatPromptTemplate.from_template("""
+generation_Lprompt_template = "Generate a single line sentence based on this topic: {topic}"
+feedback_Lprompt_template = """
 Evaluate the following transcription accuracy:
 Original Paragraph: {original_paragraph}
 Transcribed Text: {transcribed_text}
 Score: {score}/5
 Provide brief feedback about the accuracy of the transcription and pronunciation.
-""")
+"""
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -577,7 +564,7 @@ Question 1:
 
 """
 
-question_prompt = ChatPromptTemplate.from_template(question_template)
+question_prompt_template = question_template
 
 # Function to generate questions with Groq
 def generate_questions_with_groq(template, input_data):
@@ -600,9 +587,6 @@ def generate_questions_with_groq(template, input_data):
 # Use this function instead of directly piping through model
 def question_chain_invoke(data):
     return generate_questions_with_groq(question_template, data)
-
-text_splitter = CharacterTextSplitter(separator="/n", chunk_size=1000, chunk_overlap=200)
-embeddings = HuggingFaceEmbeddings()
 
 def parse_input(input_text):
     lines = input_text.strip().split("\n")
@@ -877,10 +861,8 @@ def test_generate():
         except (ValueError, TypeError):
             noOfQues = 5  # Default to 5 questions if parsing fails
             
-        # Filter the input text
-        cleaned_text = clean_text(inputText)
-        filtered_text = filter_unwanted_text(cleaned_text)
-        final_filtered_text = preserve_content_length(inputText, filtered_text, retention_factor=0.9)
+        # Use raw input text directly - no cleaning or filtering
+        final_filtered_text = inputText
 
         if testType == "objective":
             if processing_method == "nlp":
@@ -975,7 +957,7 @@ def test_generate():
 
                 # Debug prints
                 print(f"Input text length: {len(inputText)}")
-                print(f"Final filtered text length: {len(final_filtered_text)}")
+                print(f"Final text length: {len(final_filtered_text)}")
                 print(f"Number of QnA items: {len(qna_items)}")
                 print(f"Content source: {source_type}")
                 print(f"Content length: {content_length}")
@@ -1373,22 +1355,21 @@ def cleanup_audio():
             os.remove(filepath)
 
 def load_knowledge_base(pdf_path):
-    loader = PyPDFLoader(pdf_path)
-    documents = loader.load()
-    text_chunks = text_splitter.split_documents(documents)
-    knowledge_base = FAISS.from_documents(text_chunks, embeddings)
+    # Extract text from PDF
+    text = ""
+    pdf_reader = PdfReader(pdf_path)
+    for page_num in range(len(pdf_reader.pages)):
+        page_text = pdf_reader.pages[page_num].extract_text()
+        text += page_text
     
     def process_query_with_groq(query):
         system_prompt = "You are a helpful assistant answering questions based on provided documents."
-        retriever = knowledge_base.as_retriever()
-        docs = retriever.get_relevant_documents(query)
-        context = "\n\n".join([doc.page_content for doc in docs])
         
         completion = groq_client.chat.completions.create(
             model="gemma2-9b-it",
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Based on the following context, please answer the question: {query}\n\nContext: {context}"}
+                {"role": "user", "content": f"Based on the following context, please answer the question: {query}\n\nContext: {text}"}
             ],
             temperature=0.7,
             max_tokens=1024,
@@ -2185,245 +2166,160 @@ def calculate_score():
 
 ############ Testing WALA ################
 def safe_wikipedia_search(query: str) -> str:
-    """Safely search Wikipedia with error handling"""
     try:
-        query = query.strip('"\'').replace('+', ' ')
-        search_results = wikipedia.search(query, results=1)
-        if not search_results:
-            return f"No Wikipedia articles found for '{query}'"
-        
-        page_title = search_results[0]
-        page = wikipedia.page(page_title, auto_suggest=False)
-        return page.summary[0:500]
-        
-    except wikipedia.exceptions.DisambiguationError as e:
-        try:
-            page = wikipedia.page(e.options[0], auto_suggest=False)
-            return page.summary[0:500]
-        except:
-            return f"Multiple Wikipedia articles found for '{query}'. Please be more specific."
-    except wikipedia.exceptions.PageError:
-        return f"No Wikipedia article found for '{query}'"
+        return wikipedia.summary(query, sentences=5)
     except Exception as e:
-        return f"An error occurred while searching Wikipedia: {str(e)}"
+        return f"Error fetching information from Wikipedia: {str(e)}"
 
 def safe_duckduckgo_search(query: str) -> str:
-    """Safely search DuckDuckGo with error handling"""
     try:
-        query = query.strip('"\'').replace('+', ' ')
-        
         with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=3))
-        
-        if not results:
-            return "No results found on DuckDuckGo."
-            
-        formatted_results = []
-        for r in results:
-            link = r.get('link', 'No link available')
-            body = r['body'][:200] + '...' if 'body' in r else ''
-            formatted_results.append(f"- {r['title']}\n  {body}\n  Source: {link}")
-        
-        return "\n\n".join(formatted_results)
+            results = list(ddgs.text(query, max_results=5))
+        return "\n".join([f"{r['title']}: {r['body']}" for r in results])
     except Exception as e:
-        return f"An error occurred while searching DuckDuckGo: {str(e)}"
+        return f"Error searching with DuckDuckGo: {str(e)}"
 
 def safe_math_eval(expression: str) -> str:
-    """Safely evaluate mathematical expressions"""
     try:
-        allowed_chars = set("0123456789+-*/(). ")
+        # Validate the expression for safety
+        allowed_chars = set("0123456789+-*/() .")
         if not all(c in allowed_chars for c in expression):
-            return "Invalid mathematical expression. Only basic operations are allowed."
-        result = eval(expression)
-        return str(result)
+            return "Invalid characters in expression."
+        
+        # Use eval to calculate the result (risky but controlled)
+        return str(eval(expression))
     except Exception as e:
-        return f"Error evaluating mathematical expression: {str(e)}"
+        return f"Error in calculation: {str(e)}"
 
 def search_arxiv(query: str) -> str:
-    """Search ARXiv with improved response parsing"""
-    if not query:
-        return "No query provided."
     try:
-        url = f"http://export.arxiv.org/api/query?search_query=all:{query}&start=0&max_results=3"
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
+        # Basic URL for arXiv API
+        url = "http://export.arxiv.org/api/query"
+        params = {
+            "search_query": f"all:{query}",
+            "max_results": 5
+        }
         
+        response = requests.get(url, params=params)
+        if response.status_code != 200:
+            return f"Error: Received status code {response.status_code} from arXiv"
+        
+        # Parse XML response
         root = ET.fromstring(response.text)
-        results = []
-        for entry in root.findall('{http://www.w3.org/2005/Atom}entry'):
-            title = entry.find('{http://www.w3.org/2005/Atom}title').text
-            summary = entry.find('{http://www.w3.org/2005/Atom}summary').text
-            link = entry.find('{http://www.w3.org/2005/Atom}id').text
-            results.append(f"Title: {title}\nLink: {link}\nSummary: {summary[:200]}...\n")
         
-        return "\n".join(results) if results else "No results found on arXiv."
+        results = []
+        for entry in root.findall("{http://www.w3.org/2005/Atom}entry"):
+            title = entry.find("{http://www.w3.org/2005/Atom}title").text.strip()
+            summary = entry.find("{http://www.w3.org/2005/Atom}summary").text.strip()
+            url = entry.find("{http://www.w3.org/2005/Atom}id").text.strip()
+            
+            # Truncate summary if too long
+            if len(summary) > 300:
+                summary = summary[:300] + "..."
+            
+            results.append(f"Title: {title}\nSummary: {summary}\nURL: {url}\n")
+        
+        return "\n".join(results) if results else "No results found on arXiv for your query."
     except Exception as e:
-        return f"Error searching ArXiv: {str(e)}"
+        return f"Error searching arXiv: {str(e)}"
 
 def search_pubmed(query: str) -> str:
-    """Search PubMed with improved response handling"""
-    if not query:
-        return "No query provided."
     try:
-        esearch_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term={query}&retmax=3&format=json"
-        response = requests.get(esearch_url, timeout=10)
-        response.raise_for_status()
+        # Use PubMed API to search for papers
+        # First get IDs of matching papers
+        esearch_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
+        esearch_params = {
+            "db": "pubmed",
+            "term": query,
+            "retmode": "json",
+            "retmax": 5
+        }
         
-        data = response.json()
-        ids = data.get('esearchresult', {}).get('idlist', [])
+        esearch_response = requests.get(esearch_url, params=esearch_params)
+        esearch_data = json.loads(esearch_response.text)
         
-        if not ids:
-            return "No results found on PubMed."
-            
-        ids_string = ",".join(ids)
-        esummary_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id={ids_string}&format=json"
-        response = requests.get(esummary_url, timeout=10)
-        response.raise_for_status()
+        if "esearchresult" not in esearch_data or "idlist" not in esearch_data["esearchresult"]:
+            return "No results found in PubMed for your query."
         
-        data = response.json()
+        id_list = esearch_data["esearchresult"]["idlist"]
+        
+        if not id_list:
+            return "No results found in PubMed for your query."
+        
+        # Get summaries for the IDs
+        esummary_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
+        esummary_params = {
+            "db": "pubmed",
+            "id": ",".join(id_list),
+            "retmode": "json"
+        }
+        
+        esummary_response = requests.get(esummary_url, params=esummary_params)
+        esummary_data = json.loads(esummary_response.text)
+        
         results = []
-        for id in ids:
-            paper = data['result'][id]
-            title = paper.get('title', 'No title available')
-            abstract = paper.get('abstract', 'No abstract available')
-            results.append(f"Title: {title}\nPubMed ID: {id}\nAbstract: {abstract[:200]}...\n")
-            
-        return "\n".join(results)
+        
+        for pmid in id_list:
+            if pmid in esummary_data["result"]:
+                paper = esummary_data["result"][pmid]
+                title = paper.get("title", "No Title Available")
+                abstract = "Abstract not available"
+                
+                # Try to get the abstract for each paper
+                efetch_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
+                efetch_params = {
+                    "db": "pubmed",
+                    "id": pmid,
+                    "retmode": "xml"
+                }
+                
+                efetch_response = requests.get(efetch_url, params=efetch_params)
+                
+                # Parse XML to extract abstract
+                root = ET.fromstring(efetch_response.text)
+                abstract_elements = root.findall(".//AbstractText")
+                if abstract_elements:
+                    abstract = " ".join([elem.text for elem in abstract_elements if elem.text])
+                
+                # Truncate abstract if too long
+                if len(abstract) > 300:
+                    abstract = abstract[:300] + "..."
+                
+                results.append(f"Title: {title}\nAbstract: {abstract}\nPMID: {pmid}\n")
+        
+        return "\n".join(results) if results else "No detailed results found in PubMed for your query."
     except Exception as e:
         return f"Error searching PubMed: {str(e)}"
 
-# Define the tools
-tools = [
-    Tool(
-        name="Wikipedia",
-        func=safe_wikipedia_search,
-        description="Get detailed explanations and summaries from Wikipedia. who, what, when, where, why, how, story.",
-    ),
-    Tool(
-        name="DuckDuckGo",
-        func=safe_duckduckgo_search,
-        description="Search the web for current information. Input: search query. who, what, when, where, why, how.",
-    ),
-    Tool(
-        name="BasicMath",
-        func=safe_math_eval,
-        description="Performs basic mathematical calculations. Input: mathematical expression using +, -, *, /, ().",
-    ),
-    Tool(
-        name="ArXiv",
-        func=search_arxiv,
-        description="Searches arXiv for scientific papers. research paper topic or keywords.",
-    ),
-    Tool(
-        name="PubMed",
-        func=search_pubmed,
-        description="Searches PubMed for medical research. research paper on medical topic or keywords.",
-    ),
+# List of available research tools
+research_tools = [
+    {"name": "Wikipedia", "description": "Get detailed explanations and summaries from Wikipedia"},
+    {"name": "DuckDuckGo", "description": "Search the web for current information"},
+    {"name": "BasicMath", "description": "Performs basic mathematical calculations"},
+    {"name": "ArXiv", "description": "Searches arXiv for scientific papers"},
+    {"name": "PubMed", "description": "Searches PubMed for medical research"}
 ]
 
-tool_descriptions = "\n".join([f"{tool.name}: {tool.description}" for tool in tools])
-
-CUSTOM_PROMPT = f"""You are a helpful research assistant that finds information using the available tools. Follow these guidelines strictly:
-
-Available tools:
-
+def process_research_with_groq(query):
+    tool_descriptions = "\n".join([f"{tool['name']}: {tool['description']}" for tool in research_tools])
+    system_prompt = f"""You are a research assistant with access to the following tools:
 {tool_descriptions}
 
-Instructions:
-. Details from Internal Knowledge: Related information you already know
-. Add line breaks between sections
-. Use the exact tool name from the list above
-. Keep queries simple and clear
-. Use tools according to the type of information needed
-. In case of research paper only use ArXiv and Pubmed
-. Summarize information from multiple sources when relevant
-. Stop as soon as you have a clear answer with reference links
+Based on the user's query, determine which tool would be most appropriate to use. 
+Then, provide a comprehensive answer using the information retrieved from that tool.
+If you need information from multiple tools, use them in sequence and combine the results.
 
-Use this exact format:
+Format your response in clear, well-organized sections with appropriate headings if necessary.
+"""
 
-Question: the input question you must answer
-Thought: analyze the question and decide which tool to use
-Action: use EXACTLY one of these tools: Wikipedia, DuckDuckGo, BasicMath, ArXiv, or PubMed
-Action Input: just the plain search query or math expression
-Observation: the result of the action
-... (this Thought/Action/Action Input/Observation can repeat up to 3 times if needed)
-Thought: I now know the final answer
-Final Answer: provide a complete answer based on the information gathered with link (Details from Web Search: 
-- First result title and brief description
-- Second result title and brief description
-
-References:
-[1] link1
-[2] link2
-[etc])
-
-Begin!
-
-Question: {{input}}
-Thought:"""
-
-# Initialize the agent
-def process_research_with_groq(query):
-    """Process research query using Groq's Gemma model instead of Agent framework"""
-    system_prompt = f"""You are a helpful research assistant that finds information using available tools.
-    
-    Available tools:
-    
-    {tool_descriptions}
-    
-    Based on the user's query, decide which tool would be most appropriate and provide a helpful answer.
-    """
-    
-    # First, determine which tool to use
-    tool_selection_prompt = f"For the query: '{query}', which of these tools would be most appropriate to use: Wikipedia, DuckDuckGo, BasicMath, ArXiv, or PubMed? Answer with just the tool name."
-    
     completion = groq_client.chat.completions.create(
         model="gemma2-9b-it",
         messages=[
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": tool_selection_prompt}
-        ],
-        temperature=0.2,
-        max_tokens=50,
-        top_p=1,
-    )
-    
-    tool_name = completion.choices[0].message.content.strip()
-    
-    # Map the tool name to the actual function
-    tool_map = {
-        "Wikipedia": safe_wikipedia_search,
-        "DuckDuckGo": safe_duckduckgo_search,
-        "BasicMath": safe_math_eval,
-        "ArXiv": search_arxiv,
-        "PubMed": search_pubmed
-    }
-    
-    # Default to DuckDuckGo if no valid tool is selected
-    tool_function = tool_map.get(tool_name, safe_duckduckgo_search)
-    
-    # Execute the tool
-    observation = tool_function(query)
-    
-    # Generate the final answer
-    final_prompt = f"""
-    Question: {query}
-    
-    I searched for information using {tool_name} and found:
-    {observation}
-    
-    Based on this information, provide a comprehensive, accurate answer to the original question.
-    Include relevant details and organize your response clearly.
-    """
-    
-    completion = groq_client.chat.completions.create(
-        model="gemma2-9b-it",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": final_prompt}
+            {"role": "user", "content": query}
         ],
         temperature=0.7,
-        max_tokens=1500,
+        max_tokens=2048,
         top_p=1,
     )
     
@@ -2431,7 +2327,7 @@ def process_research_with_groq(query):
 
 @app.route('/research')
 def research():
-    return render_template('research.html', tools=tools)
+    return render_template('research.html', tools=research_tools)
 
 @app.route('/search', methods=['POST'])
 def search():
